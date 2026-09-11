@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Heebo', 'Baloo 2', 'Varela Round', system-ui, sans-serif;
+  background: linear-gradient(180deg, #fff9ec 0%, #fef3ff 45%, #eef8ff 100%);
+  color: #2c2450;
+  overflow-x: hidden;
+}
+
+[dir='rtl'] .flip-x {
+  transform: scaleX(-1);
+}
+
+.font-fun {
+  font-family: 'Baloo 2', 'Heebo', 'Varela Round', system-ui, sans-serif;
+}
+
+.bg-shimmer {
+  background-size: 200% 100%;
+  background-image: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d9c9ff;
+  border-radius: 999px;
+}
+
+.card-outline {
+  border: 3px solid rgba(255,255,255,0.7);
+}
+
+.btn-pressable {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-pressable:active {
+  transform: translateY(4px);
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
