@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import type { Collider } from './collision'
+import { asphaltTexture, sidewalkTexture, sandTexture, grassTexture, buildingFacadeTexture } from './textures'
+import { buildCar } from './vehicles/models'
 
 /**
  * Builds the original GTN neighborhood - every shape here is a primitive
@@ -12,9 +14,9 @@ import type { Collider } from './collision'
 export const HALF_SIZE = 46
 export const SPAWN_POINT = new THREE.Vector3(3, 0, 10)
 
-const ROAD_WIDTH = 9
-const ROAD_Y = 0.02
-const SIDEWALK_WIDTH = 1.8
+export const ROAD_WIDTH = 9
+export const ROAD_Y = 0.02
+export const SIDEWALK_WIDTH = 1.8
 
 // Coastline - city -> roads -> beach -> boardwalk -> pier -> open sea, all
 // one continuous world (the ocean is not a disconnected backdrop).
@@ -35,6 +37,26 @@ export const OCEAN_CENTER_Z = SAND_END_Z - OCEAN_DEPTH / 2
 
 export const WORLD_SOUTH_LIMIT = PIER_END_Z - 8
 
+// Airport - a separate zone north of the ring road (the city itself is
+// untouched), reachable by walking straight up the north-south main road
+// and past the city limit.
+export const RUNWAY_WIDTH = 10
+const AIRPORT_GAP = 14
+export const AIRPORT_Z0 = HALF_SIZE + AIRPORT_GAP
+export const RUNWAY_LENGTH = 64
+export const AIRPORT_Z1 = AIRPORT_Z0 + RUNWAY_LENGTH
+export const WORLD_NORTH_LIMIT = AIRPORT_Z1 + 12
+export const PLANE_SPAWN = new THREE.Vector3(0, 0, AIRPORT_Z0 + 8)
+export const BALLOON_SPAWN = new THREE.Vector3(-25, 0, -16)
+export const BOAT_SPAWN = new THREE.Vector3(-7, 0, -88)
+
+// East/west world edges - pushed out to cover the streamed districts added
+// around the original city (business/commercial/industrial to the east,
+// residential/rural to the west), independently of HALF_SIZE so the
+// original ring city's own geometry never has to change.
+export const WORLD_EAST_LIMIT = 570
+export const WORLD_WEST_LIMIT = -320
+
 /** Height the walking character/vehicle should rest at for a given XZ spot - flat ground everywhere except the raised boardwalk and pier. */
 export function getGroundHeightAt(x: number, z: number): number {
   if (Math.abs(x) <= PIER_HALF_WIDTH && z <= PIER_START_Z && z >= PIER_END_Z) return PIER_HEIGHT
@@ -49,7 +71,7 @@ export function isInWater(x: number, z: number): boolean {
   return !onPierDeck
 }
 
-const palette = {
+export const palette = {
   grass: 0x3fa34d,
   road: 0x35363b,
   roadLine: 0xe8e8e0,
@@ -76,34 +98,56 @@ const palette = {
   umbrella: [0xff5d73, 0x3fb0e0, 0xffd15a],
 }
 
-interface BuildContext {
+export interface BuildContext {
   group: THREE.Group
   colliders: Collider[]
   shorelineColliders: Collider[]
   collidableMeshes: THREE.Object3D[]
 }
 
-function box(w: number, h: number, d: number, color: number) {
+export function box(w: number, h: number, d: number, color: number) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color }))
   mesh.castShadow = true
   mesh.receiveShadow = true
   return mesh
 }
 
-function plane(w: number, d: number, color: number, receiveShadow = true) {
+export function boxTextured(w: number, h: number, d: number, map: THREE.Texture) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ map, roughness: 0.95 }))
+  mesh.castShadow = true
+  mesh.receiveShadow = true
+  return mesh
+}
+
+export function plane(w: number, d: number, color: number, receiveShadow = true) {
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshStandardMaterial({ color }))
   mesh.rotation.x = -Math.PI / 2
   mesh.receiveShadow = receiveShadow
   return mesh
 }
 
-function pick<T>(arr: T[], i: number): T {
+export function planeTextured(w: number, d: number, map: THREE.Texture, tint = 0xffffff) {
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshStandardMaterial({ map, color: tint, roughness: 0.95 }))
+  mesh.rotation.x = -Math.PI / 2
+  mesh.receiveShadow = true
+  return mesh
+}
+
+export function pick<T>(arr: T[], i: number): T {
   return arr[i % arr.length]
 }
 
-function addSolidBox(ctx: BuildContext, w: number, h: number, d: number, color: number, cx: number, cz: number, cy = h / 2) {
-  const mesh = box(w, h, d, color)
-  mesh.position.set(cx, cy, cz)
+/** A box building with a windowed facade texture on its four side faces and a plain roof-color cap on top/bottom. */
+export function addFacadeBuilding(ctx: BuildContext, w: number, h: number, d: number, color: number, cx: number, cz: number, variant: number) {
+  const sideMat = new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.05 })
+  sideMat.map = buildingFacadeTexture(variant, h, Math.max(w, d))
+  sideMat.map.colorSpace = THREE.SRGBColorSpace
+  const capMat = new THREE.MeshStandardMaterial({ color, roughness: 0.9 })
+  // BoxGeometry face-group order: +X, -X, +Y, -Y, +Z, -Z
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [sideMat, sideMat, capMat, capMat, sideMat, sideMat])
+  mesh.position.set(cx, h / 2, cz)
+  mesh.castShadow = true
+  mesh.receiveShadow = true
   ctx.group.add(mesh)
   ctx.collidableMeshes.push(mesh)
   ctx.colliders.push({ minX: cx - w / 2, maxX: cx + w / 2, minZ: cz - d / 2, maxZ: cz + d / 2 })
@@ -111,20 +155,35 @@ function addSolidBox(ctx: BuildContext, w: number, h: number, d: number, color: 
 }
 
 function buildGround(ctx: BuildContext) {
-  const ground = plane(HALF_SIZE * 2 + 20, HALF_SIZE * 2 + 20, palette.grass)
+  // Kept at its original footprint (not grown to reach the airport) - a
+  // single centered square would have bled grass southward underneath the
+  // semi-transparent ocean too. The airport's own grass strip is added
+  // separately, only to the north.
+  const size = HALF_SIZE * 2 + 20
+  const ground = planeTextured(size, size, grassTexture(size / 3, size / 3))
   ground.position.y = 0
   ctx.group.add(ground)
+
+  // A much lower tiling density than the main plane - this stretch is wide
+  // open with nothing to break up the sightline (unlike the city, where
+  // buildings/streets hide most long grazing-angle views of the ground),
+  // so a high-frequency repeating texture here would alias into visible
+  // moire bands looking down the runway.
+  const northDepth = WORLD_NORTH_LIMIT + 20 - size / 2
+  const northPatch = planeTextured(size, northDepth, grassTexture(size / 10, northDepth / 10))
+  northPatch.position.set(0, 0, size / 2 + northDepth / 2)
+  ctx.group.add(northPatch)
 }
 
 function buildRoads(ctx: BuildContext) {
   const group = ctx.group
   const span = HALF_SIZE * 2
 
-  const horiz = plane(span, ROAD_WIDTH, palette.road)
+  const horiz = planeTextured(span, ROAD_WIDTH, asphaltTexture(span / 4, ROAD_WIDTH / 2))
   horiz.position.y = ROAD_Y
   group.add(horiz)
 
-  const vert = plane(ROAD_WIDTH, span, palette.road)
+  const vert = planeTextured(ROAD_WIDTH, span, asphaltTexture(ROAD_WIDTH / 2, span / 4))
   vert.position.y = ROAD_Y
   group.add(vert)
 
@@ -135,7 +194,7 @@ function buildRoads(ctx: BuildContext) {
     { w: ROAD_WIDTH, d: span, x: -HALF_SIZE, z: 0 },
   ]
   ring.forEach(({ w, d, x, z }) => {
-    const seg = plane(w, d, palette.road)
+    const seg = planeTextured(w, d, asphaltTexture(w / 4, d / 2))
     seg.position.set(x, ROAD_Y, z)
     group.add(seg)
   })
@@ -181,7 +240,7 @@ function buildSidewalksAndLamps(ctx: BuildContext) {
   const inset = ROAD_WIDTH / 2 + SIDEWALK_WIDTH / 2
 
   ;[HALF_SIZE, -HALF_SIZE].forEach((z) => {
-    const walk = box(span, 0.2, SIDEWALK_WIDTH, palette.sidewalk)
+    const walk = boxTextured(span, 0.2, SIDEWALK_WIDTH, sidewalkTexture(span / 3, 1))
     walk.position.set(0, 0.1, z > 0 ? z - inset + ROAD_WIDTH / 2 + SIDEWALK_WIDTH / 2 : z + inset - ROAD_WIDTH / 2 - SIDEWALK_WIDTH / 2)
     group.add(walk)
   })
@@ -257,14 +316,14 @@ function buildSigns(ctx: BuildContext) {
   ctx.group.add(poleMesh, boardMesh)
 }
 
-interface Zone {
+export interface Zone {
   xMin: number
   xMax: number
   zMin: number
   zMax: number
 }
 
-function placeGrid(zone: Zone, cols: number, rows: number, build: (cx: number, cz: number, cellW: number, cellD: number, index: number) => void) {
+export function placeGrid(zone: Zone, cols: number, rows: number, build: (cx: number, cz: number, cellW: number, cellD: number, index: number) => void) {
   const cellW = (zone.xMax - zone.xMin) / cols
   const cellD = (zone.zMax - zone.zMin) / rows
   let index = 0
@@ -282,7 +341,7 @@ function buildDowntown(ctx: BuildContext) {
   placeGrid(zone, 4, 3, (cx, cz, cellW, cellD, i) => {
     const footprint = Math.min(cellW, cellD) * 0.58
     const height = 7 + (i % 5) * 3.6 + (i % 3 === 0 ? 4 : 0)
-    addSolidBox(ctx, footprint, height, footprint, pick(palette.downtown, i), cx, cz)
+    addFacadeBuilding(ctx, footprint, height, footprint, pick(palette.downtown, i), cx, cz, i)
   })
 }
 
@@ -292,7 +351,7 @@ function buildResidential(ctx: BuildContext) {
     const w = cellW * 0.52
     const d = cellD * 0.52
     const h = 2.6
-    addSolidBox(ctx, w, h, d, pick(palette.residential, i), cx, cz)
+    addFacadeBuilding(ctx, w, h, d, pick(palette.residential, i), cx, cz, i + 1)
     const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.72, 1.6, 4), new THREE.MeshStandardMaterial({ color: palette.roof }))
     roof.rotation.y = Math.PI / 4
     roof.position.set(cx, h + 0.8, cz)
@@ -312,7 +371,7 @@ function buildShops(ctx: BuildContext) {
     const w = cellW * 0.62
     const d = cellD * 0.62
     const h = 3.2
-    addSolidBox(ctx, w, h, d, pick(palette.shop, i), cx, cz)
+    addFacadeBuilding(ctx, w, h, d, pick(palette.shop, i), cx, cz, i + 2)
     const sign = box(w * 0.8, 0.6, 0.15, 0xffffff)
     sign.position.set(cx, h + 0.4, cz + d / 2)
     ctx.group.add(sign)
@@ -339,7 +398,9 @@ function buildParkingLot(ctx: BuildContext) {
 
 function buildPark(ctx: BuildContext) {
   const zone: Zone = { xMin: -HALF_SIZE + 1.5, xMax: -ROAD_WIDTH / 2 - 1.5, zMin: -HALF_SIZE + 1.5, zMax: -ROAD_WIDTH / 2 - 1.5 }
-  const lawn = plane(zone.xMax - zone.xMin, zone.zMax - zone.zMin, 0x4fbf5f)
+  const lawnW = zone.xMax - zone.xMin
+  const lawnD = zone.zMax - zone.zMin
+  const lawn = planeTextured(lawnW, lawnD, grassTexture(lawnW / 4, lawnD / 4), 0xdfffe6)
   lawn.position.set((zone.xMin + zone.xMax) / 2, 0.03, (zone.zMin + zone.zMax) / 2)
   ctx.group.add(lawn)
 
@@ -389,7 +450,7 @@ function buildPark(ctx: BuildContext) {
   buildBenches(ctx, benchSpots)
 }
 
-function buildTrees(ctx: BuildContext, spots: [number, number][]) {
+export function buildTrees(ctx: BuildContext, spots: [number, number][]) {
   if (spots.length === 0) return
   const trunkGeo = new THREE.CylinderGeometry(0.18, 0.22, 1.4, 8)
   const trunkMat = new THREE.MeshStandardMaterial({ color: palette.trunk })
@@ -416,7 +477,44 @@ function buildTrees(ctx: BuildContext, spots: [number, number][]) {
   ctx.group.add(trunkMesh, leavesMesh)
 }
 
-function buildBenches(ctx: BuildContext, spots: [number, number, number][]) {
+export function buildPalmTrees(ctx: BuildContext, spots: [number, number][]) {
+  if (spots.length === 0) return
+  const trunkGeo = new THREE.CylinderGeometry(0.1, 0.2, 2.6, 7)
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8a6a45, roughness: 0.85 })
+  const trunkMesh = new THREE.InstancedMesh(trunkGeo, trunkMat, spots.length)
+  trunkMesh.castShadow = true
+
+  const frondGeo = new THREE.ConeGeometry(0.22, 1.7, 5)
+  const frondMat = new THREE.MeshStandardMaterial({ color: 0x3fae55, roughness: 0.8 })
+  const fronds = 6
+  const frondMesh = new THREE.InstancedMesh(frondGeo, frondMat, spots.length * fronds)
+  frondMesh.castShadow = true
+
+  const dummy = new THREE.Object3D()
+  let frondIndex = 0
+  spots.forEach(([x, z], i) => {
+    const lean = (Math.sin(i * 3.1) * 0.06)
+    dummy.position.set(x, 1.3, z)
+    dummy.rotation.set(0, 0, lean)
+    dummy.updateMatrix()
+    trunkMesh.setMatrixAt(i, dummy.matrix)
+    ctx.colliders.push({ minX: x - 0.2, maxX: x + 0.2, minZ: z - 0.2, maxZ: z + 0.2 })
+
+    const crownY = 2.7
+    for (let f = 0; f < fronds; f++) {
+      const angle = (f / fronds) * Math.PI * 2
+      dummy.position.set(x + Math.cos(angle) * 0.35, crownY, z + Math.sin(angle) * 0.35)
+      dummy.rotation.set(Math.PI / 2.5, 0, angle)
+      dummy.updateMatrix()
+      frondMesh.setMatrixAt(frondIndex++, dummy.matrix)
+    }
+  })
+  trunkMesh.instanceMatrix.needsUpdate = true
+  frondMesh.instanceMatrix.needsUpdate = true
+  ctx.group.add(trunkMesh, frondMesh)
+}
+
+export function buildBenches(ctx: BuildContext, spots: [number, number, number][]) {
   if (spots.length === 0) return
   const seatGeo = new THREE.BoxGeometry(1.2, 0.1, 0.4)
   const seatMat = new THREE.MeshStandardMaterial({ color: palette.benchSeat })
@@ -443,7 +541,7 @@ function buildBenches(ctx: BuildContext, spots: [number, number, number][]) {
   ctx.group.add(seatMesh, legMesh)
 }
 
-function buildUmbrellas(ctx: BuildContext, spots: [number, number][]) {
+export function buildUmbrellas(ctx: BuildContext, spots: [number, number][]) {
   if (spots.length === 0) return
   const poleGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.6, 6)
   const poleMat = new THREE.MeshStandardMaterial({ color: 0xf4f0e6 })
@@ -471,7 +569,9 @@ function buildUmbrellas(ctx: BuildContext, spots: [number, number][]) {
 }
 
 function buildBeach(ctx: BuildContext) {
-  const sand = plane(BEACH_HALF_WIDTH * 2, SHORE_Z - SAND_END_Z, palette.sand)
+  const beachW = BEACH_HALF_WIDTH * 2
+  const beachD = SHORE_Z - SAND_END_Z
+  const sand = planeTextured(beachW, beachD, sandTexture(beachW / 4, beachD / 3))
   sand.position.set(0, 0.04, (SHORE_Z + SAND_END_Z) / 2)
   ctx.group.add(sand)
 
@@ -486,6 +586,16 @@ function buildBeach(ctx: BuildContext) {
     [24, SHORE_Z - 11],
     [38, SHORE_Z - 6],
   ])
+
+  // A palm-lined promenade on the open sand, clearly south of the ring
+  // road/boardwalk strip so trunks never poke up through the asphalt.
+  const palmZ = SAND_END_Z + 4
+  const palmSpots: [number, number][] = []
+  for (let x = -BEACH_HALF_WIDTH + 4; x <= BEACH_HALF_WIDTH - 4; x += 8) {
+    if (Math.abs(x) <= PIER_HALF_WIDTH + 1.5) continue // keep the pier approach clear
+    palmSpots.push([x, palmZ])
+  }
+  buildPalmTrees(ctx, palmSpots)
 }
 
 function buildPier(ctx: BuildContext) {
@@ -522,6 +632,146 @@ function buildPier(ctx: BuildContext) {
   ctx.shorelineColliders.push({ minX: -PIER_HALF_WIDTH, maxX: PIER_HALF_WIDTH, minZ: farZ, maxZ: PIER_END_Z })
 }
 
+function buildTrafficLights(ctx: BuildContext) {
+  const offset = ROAD_WIDTH / 2 + 1
+  const corners: [number, number][] = [
+    [offset, offset],
+    [-offset, offset],
+    [offset, -offset],
+    [-offset, -offset],
+  ]
+  const poleGeo = new THREE.CylinderGeometry(0.07, 0.07, 2.6, 8)
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
+  const poleMesh = new THREE.InstancedMesh(poleGeo, poleMat, corners.length)
+  poleMesh.castShadow = true
+
+  const headGeo = new THREE.BoxGeometry(0.3, 0.7, 0.22)
+  const headMat = new THREE.MeshStandardMaterial({ color: 0x1c1c1c })
+  const headMesh = new THREE.InstancedMesh(headGeo, headMat, corners.length)
+
+  const dotGeo = new THREE.CircleGeometry(0.07, 12)
+  const redMat = new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2d2d, emissiveIntensity: 0.15 })
+  const yellowMat = new THREE.MeshStandardMaterial({ color: 0x3a330d, emissive: 0xffcf2d, emissiveIntensity: 0.15 })
+  const greenMat = new THREE.MeshStandardMaterial({ color: 0x123a1a, emissive: 0x2dff6a, emissiveIntensity: 0.95 })
+
+  const dummy = new THREE.Object3D()
+  corners.forEach(([x, z], i) => {
+    dummy.position.set(x, 1.3, z)
+    dummy.rotation.set(0, 0, 0)
+    dummy.updateMatrix()
+    poleMesh.setMatrixAt(i, dummy.matrix)
+
+    const facing = Math.atan2(-x, -z)
+    dummy.position.set(x, 2.5, z)
+    dummy.rotation.set(0, facing, 0)
+    dummy.updateMatrix()
+    headMesh.setMatrixAt(i, dummy.matrix)
+
+    const dots = new THREE.Group()
+    ;[
+      { mat: redMat, y: 0.22 },
+      { mat: yellowMat, y: 0 },
+      { mat: greenMat, y: -0.22 },
+    ].forEach(({ mat, y }) => {
+      const dot = new THREE.Mesh(dotGeo, mat)
+      dot.position.set(0, y, 0.115)
+      dots.add(dot)
+    })
+    dots.position.set(x, 2.5, z)
+    dots.rotation.y = facing
+    ctx.group.add(dots)
+  })
+  poleMesh.instanceMatrix.needsUpdate = true
+  headMesh.instanceMatrix.needsUpdate = true
+  ctx.group.add(poleMesh, headMesh)
+}
+
+const PARKED_CAR_COLORS = [0x2f6fd6, 0xd63f3f, 0xe0a637, 0x4fb0c9, 0x7226f5]
+
+function buildParkedCars(ctx: BuildContext) {
+  // Tucked just outside the ring road (never inside a building zone, the
+  // pier corridor, or the beach transition).
+  const spots: [number, number, number, number][] = [
+    [HALF_SIZE + 3, 15, 0, 0],
+    [HALF_SIZE + 3, 28, Math.PI, 1],
+    [-HALF_SIZE - 3, -15, Math.PI, 2],
+    [-HALF_SIZE - 3, -28, 0, 3],
+    [10, HALF_SIZE + 3, Math.PI / 2, 4],
+  ]
+  spots.forEach(([x, z, heading, colorIdx]) => {
+    const car = buildCar(PARKED_CAR_COLORS[colorIdx % PARKED_CAR_COLORS.length])
+    car.rotation.y = heading
+    car.position.set(x, 0, z)
+    car.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.castShadow = true
+        obj.receiveShadow = true
+      }
+    })
+    ctx.group.add(car)
+    ctx.collidableMeshes.push(car)
+    ctx.colliders.push({ minX: x - 1.0, maxX: x + 1.0, minZ: z - 1.9, maxZ: z + 1.9 })
+  })
+}
+
+function buildAirport(ctx: BuildContext) {
+  const apronZ0 = AIRPORT_Z0 - 6
+  const apronDepth = 16
+
+  // Apron (where the plane parks) plus the runway strip north of it.
+  const apron = planeTextured(RUNWAY_WIDTH + 6, apronDepth, asphaltTexture(2, apronDepth / 3))
+  apron.position.set(0, ROAD_Y, apronZ0 + apronDepth / 2)
+  ctx.group.add(apron)
+
+  const runway = planeTextured(RUNWAY_WIDTH, RUNWAY_LENGTH, asphaltTexture(1.5, RUNWAY_LENGTH / 6))
+  runway.position.set(0, ROAD_Y, (AIRPORT_Z0 + AIRPORT_Z1) / 2)
+  ctx.group.add(runway)
+
+  for (let z = AIRPORT_Z0 + 3; z < AIRPORT_Z1 - 3; z += 6) {
+    const stripe = plane(0.5, 3, palette.roadLine)
+    stripe.position.set(0, ROAD_Y + 0.01, z)
+    ctx.group.add(stripe)
+  }
+
+  // A short connector road up from the city's north gate to the apron.
+  const connector = planeTextured(ROAD_WIDTH, AIRPORT_GAP + 2, asphaltTexture(ROAD_WIDTH / 2, 2))
+  connector.position.set(0, ROAD_Y, HALF_SIZE + AIRPORT_GAP / 2)
+  ctx.group.add(connector)
+
+  // Control tower.
+  const towerBase = addFacadeBuilding(ctx, 3.2, 8, 3.2, 0x7a8494, -RUNWAY_WIDTH / 2 - 5, apronZ0 + 3, 9)
+  const cabin = box(4, 1.8, 4, 0xbfd8e6)
+  cabin.position.set(towerBase.position.x, 8 + 0.9, towerBase.position.z)
+  ctx.group.add(cabin)
+  ctx.collidableMeshes.push(cabin)
+  ctx.colliders.push({ minX: towerBase.position.x - 2, maxX: towerBase.position.x + 2, minZ: towerBase.position.z - 2, maxZ: towerBase.position.z + 2 })
+
+  // A small hangar beside the apron.
+  const hangarX = RUNWAY_WIDTH / 2 + 6
+  const hangarZ = apronZ0 + 4
+  const hangar = box(9, 4.5, 8, 0xc9ccd1)
+  hangar.position.set(hangarX, 2.25, hangarZ)
+  ctx.group.add(hangar)
+  ctx.collidableMeshes.push(hangar)
+  ctx.colliders.push({ minX: hangarX - 4.5, maxX: hangarX + 4.5, minZ: hangarZ - 4, maxZ: hangarZ + 4 })
+  const hangarRoof = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.6, 8, 12, 1, false, 0, Math.PI), new THREE.MeshStandardMaterial({ color: 0x9aa3ad }))
+  hangarRoof.rotation.z = Math.PI / 2
+  hangarRoof.rotation.y = Math.PI / 2
+  hangarRoof.position.set(hangarX, 4.5, hangarZ)
+  hangarRoof.castShadow = true
+  ctx.group.add(hangarRoof)
+
+  // Windsock.
+  const sockPoleGeo = new THREE.CylinderGeometry(0.05, 0.05, 3, 6)
+  const sockPole = new THREE.Mesh(sockPoleGeo, new THREE.MeshStandardMaterial({ color: 0x999999 }))
+  sockPole.position.set(RUNWAY_WIDTH / 2 + 2.5, 1.5, AIRPORT_Z0 + 4)
+  ctx.group.add(sockPole)
+  const sock = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.1, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0xff7a3d, side: THREE.DoubleSide }))
+  sock.rotation.z = Math.PI / 2
+  sock.position.set(RUNWAY_WIDTH / 2 + 2.5 + 0.55, 2.8, AIRPORT_Z0 + 4)
+  ctx.group.add(sock)
+}
+
 export interface CityBuild {
   group: THREE.Group
   colliders: Collider[]
@@ -538,6 +788,8 @@ export function buildCity(): CityBuild {
   buildCrosswalks(ctx)
   buildSidewalksAndLamps(ctx)
   buildSigns(ctx)
+  buildTrafficLights(ctx)
+  buildParkedCars(ctx)
   buildDowntown(ctx)
   buildResidential(ctx)
   buildShops(ctx)
@@ -545,6 +797,7 @@ export function buildCity(): CityBuild {
   buildPark(ctx)
   buildBeach(ctx)
   buildPier(ctx)
+  buildAirport(ctx)
 
   return ctx
 }

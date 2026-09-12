@@ -37,6 +37,12 @@ export default function GTNPage() {
           <p>🕹️ {tr('gtn_howto_move')}</p>
           <p>🦘 {tr('gtn_howto_jump')}</p>
           <p>📱 {tr('gtn_howto_mobile')}</p>
+          <p className="mt-3 font-extrabold">🔫 {tr('gtn_howto_weapon_title')}</p>
+          <p>{tr('gtn_howto_weapon_equip')}</p>
+          <p>{tr('gtn_howto_weapon_fire')}</p>
+          <p>{tr('gtn_howto_weapon_aim')}</p>
+          <p>{tr('gtn_howto_weapon_reload')}</p>
+          <p>{tr('gtn_howto_weapon_mobile')}</p>
         </InfoPanel>
       )}
 

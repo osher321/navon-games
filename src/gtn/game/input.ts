@@ -10,10 +10,18 @@ export class GtnInput {
   private jumpButtonDown = false
   private jumpQueued = false
   private interactQueued = false
+  private climbButtonDown = false
+  private diveButtonDown = false
+  private weaponToggleQueued = false
+  private reloadQueued = false
+  private fireHeld = false
+  private fireCleanup: (() => void) | null = null
 
   private onKeyDown = (e: KeyboardEvent) => {
     const key = e.key.toLowerCase()
     if (!this.keys.has(key) && key === 'e') this.interactQueued = true
+    if (!this.keys.has(key) && key === 'f') this.weaponToggleQueued = true
+    if (!this.keys.has(key) && key === 'r') this.reloadQueued = true
     this.keys.add(key)
     if (e.key === ' ' || e.key === 'Spacebar') this.jumpQueued = true
   }
@@ -24,6 +32,24 @@ export class GtnInput {
   constructor() {
     window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('keyup', this.onKeyUp)
+  }
+
+  /** Wires left-mouse-button-held to firing, scoped to the game canvas itself (not the whole window) so clicking HUD/menu buttons on top of it never triggers a shot. */
+  bindFireElement(el: HTMLElement) {
+    const down = (e: MouseEvent) => {
+      if (e.button === 0) this.fireHeld = true
+    }
+    const up = () => {
+      this.fireHeld = false
+    }
+    el.addEventListener('mousedown', down)
+    // Released on the window, not just the canvas, so dragging the mouse
+    // off the viewport before releasing doesn't leave firing stuck on.
+    window.addEventListener('mouseup', up)
+    this.fireCleanup = () => {
+      el.removeEventListener('mousedown', down)
+      window.removeEventListener('mouseup', up)
+    }
   }
 
   setJoystick(x: number, y: number) {
@@ -42,6 +68,24 @@ export class GtnInput {
   setJumpButtonDown(down: boolean) {
     if (down && !this.jumpButtonDown) this.jumpQueued = true
     this.jumpButtonDown = down
+  }
+
+  setClimbButtonDown(down: boolean) {
+    this.climbButtonDown = down
+  }
+
+  setDiveButtonDown(down: boolean) {
+    this.diveButtonDown = down
+  }
+
+  /** Flight controls only: hold Space (or the mobile "climb" button) to gain altitude. */
+  isClimbHeld(): boolean {
+    return this.climbButtonDown || this.keys.has(' ')
+  }
+
+  /** Flight controls only: hold Shift (or the mobile "dive" button) to lose altitude. */
+  isDiveHeld(): boolean {
+    return this.diveButtonDown || this.keys.has('shift')
   }
 
   /** Normalized move vector: x = strafe (-1..1), y = forward (-1..1). */
@@ -90,8 +134,41 @@ export class GtnInput {
     return false
   }
 
+  /** Call from a mobile weapon-toggle button - same edge-triggered queue as the F key. */
+  queueWeaponToggle() {
+    this.weaponToggleQueued = true
+  }
+
+  /** Returns true once per equip/holster request, then resets. */
+  consumeWeaponToggle(): boolean {
+    if (this.weaponToggleQueued) {
+      this.weaponToggleQueued = false
+      return true
+    }
+    return false
+  }
+
+  /** Returns true once per manual reload request, then resets. Mobile has no dedicated reload button (the weapon auto-reloads on empty), so this is desktop-only. */
+  consumeReload(): boolean {
+    if (this.reloadQueued) {
+      this.reloadQueued = false
+      return true
+    }
+    return false
+  }
+
+  /** Mobile fire button - held state, same idea as the climb/dive buttons. */
+  setFireButtonDown(down: boolean) {
+    this.fireHeld = down
+  }
+
+  isFireHeld(): boolean {
+    return this.fireHeld
+  }
+
   dispose() {
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('keyup', this.onKeyUp)
+    this.fireCleanup?.()
   }
 }

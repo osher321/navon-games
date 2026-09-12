@@ -1,16 +1,45 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 
+interface SecondaryAction {
+  label: string
+  onDown: () => void
+  onUp: () => void
+}
+
+interface TapAction {
+  label: string
+  onTap: () => void
+}
+
 interface TouchControlsProps {
   onMove: (x: number, y: number) => void
   onJoystickRelease: () => void
   onJumpDown: () => void
   onJumpUp: () => void
   hideJump?: boolean
+  /** Overrides the primary button's label - e.g. "⬆️" when it's repurposed as "climb" while flying. */
+  jumpLabel?: string
+  /** A second held-button stacked above the primary one - e.g. "⬇️" dive, only shown while piloting an air vehicle. */
+  secondaryAction?: SecondaryAction | null
+  /** On-foot only, mutually exclusive with secondaryAction (never both at once): a tap to equip/holster the weapon, stacked at the same slot secondaryAction would use. */
+  weaponAction?: TapAction | null
+  /** On-foot only: a held button to fire, stacked one slot above weaponAction. */
+  fireAction?: SecondaryAction | null
 }
 
 const BASE_RADIUS = 52
 
-export default function TouchControls({ onMove, onJoystickRelease, onJumpDown, onJumpUp, hideJump }: TouchControlsProps) {
+export default function TouchControls({
+  onMove,
+  onJoystickRelease,
+  onJumpDown,
+  onJumpUp,
+  hideJump,
+  jumpLabel,
+  secondaryAction,
+  weaponAction,
+  fireAction,
+}: TouchControlsProps) {
   const [isTouch, setIsTouch] = useState(false)
   const [knob, setKnob] = useState({ x: 0, y: 0 })
   const baseRef = useRef<HTMLDivElement>(null)
@@ -76,7 +105,49 @@ export default function TouchControls({ onMove, onJoystickRelease, onJumpDown, o
           onPointerLeave={onJumpUp}
           className="absolute bottom-8 right-6 z-10 grid h-16 w-16 touch-none place-items-center rounded-full bg-white/80 font-fun text-sm font-extrabold text-ink shadow-card active:scale-90"
         >
-          JUMP
+          {jumpLabel ?? 'JUMP'}
+        </button>
+      )}
+
+      {secondaryAction && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault()
+            secondaryAction.onDown()
+          }}
+          onPointerUp={secondaryAction.onUp}
+          onPointerCancel={secondaryAction.onUp}
+          onPointerLeave={secondaryAction.onUp}
+          className="absolute bottom-28 right-6 z-10 grid h-16 w-16 touch-none place-items-center rounded-full bg-white/80 font-fun text-sm font-extrabold text-ink shadow-card active:scale-90"
+        >
+          {secondaryAction.label}
+        </button>
+      )}
+
+      {weaponAction && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault()
+            weaponAction.onTap()
+          }}
+          className="absolute bottom-28 right-6 z-10 grid h-16 w-16 touch-none place-items-center rounded-full bg-white/80 font-fun text-2xl shadow-card active:scale-90"
+        >
+          {weaponAction.label}
+        </button>
+      )}
+
+      {fireAction && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault()
+            fireAction.onDown()
+          }}
+          onPointerUp={fireAction.onUp}
+          onPointerCancel={fireAction.onUp}
+          onPointerLeave={fireAction.onUp}
+          className="absolute bottom-48 right-6 z-10 grid h-16 w-16 touch-none place-items-center rounded-full bg-candy-500/90 font-fun text-2xl shadow-card active:scale-90"
+        >
+          {fireAction.label}
         </button>
       )}
     </>
