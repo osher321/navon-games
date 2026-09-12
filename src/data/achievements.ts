@@ -100,4 +100,25 @@ export const ACHIEVEMENTS: Achievement[] = [
     descKey: 'ach_trophies5_desc',
     check: (p) => p.trophies >= 5,
   },
+  {
+    id: 'maze_master',
+    icon: '👾',
+    nameKey: 'ach_maze_master',
+    descKey: 'ach_maze_master_desc',
+    check: (p) => (p.bestScores.maze ?? 0) >= 30,
+  },
+  {
+    id: 'space_ace',
+    icon: '🚀',
+    nameKey: 'ach_space_ace',
+    descKey: 'ach_space_ace_desc',
+    check: (p) => (p.bestScores.space_race ?? 0) >= 40,
+  },
+  {
+    id: 'sharp_shooter',
+    icon: '🏹',
+    nameKey: 'ach_sharp_shooter',
+    descKey: 'ach_sharp_shooter_desc',
+    check: (p) => (p.bestScores.target_hit ?? 0) >= 20,
+  },
 ]

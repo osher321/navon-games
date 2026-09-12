@@ -4,6 +4,9 @@ export const FUN_GAMES: GameDef[] = [
   { id: 'memory', category: 'fun', icon: '🧠', color: 'from-candy-400 to-grape-400', nameKey: 'game_memory_name', descKey: 'game_memory_desc' },
   { id: 'catch_stars', category: 'fun', icon: '🎯', color: 'from-sunny-400 to-candy-400', nameKey: 'game_catch_stars_name', descKey: 'game_catch_stars_desc', isNew: true },
   { id: 'balloon_pop', category: 'fun', icon: '🎈', color: 'from-sky-400 to-grape-400', nameKey: 'game_balloon_pop_name', descKey: 'game_balloon_pop_desc' },
+  { id: 'maze', category: 'fun', icon: '👾', color: 'from-grape-500 to-candy-500', nameKey: 'game_maze_name', descKey: 'game_maze_desc', isNew: true },
+  { id: 'space_race', category: 'fun', icon: '🚀', color: 'from-ink to-grape-600', nameKey: 'game_space_race_name', descKey: 'game_space_race_desc', isNew: true },
+  { id: 'target_hit', category: 'fun', icon: '🏹', color: 'from-candy-500 to-sunny-500', nameKey: 'game_target_hit_name', descKey: 'game_target_hit_desc', isNew: true },
 ]
 
 export const LANGUAGE_GAMES: GameDef[] = [

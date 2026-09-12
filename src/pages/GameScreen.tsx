@@ -10,6 +10,9 @@ import type { GameFinishResult } from '../games/types'
 import MemoryGame from '../games/MemoryGame'
 import CatchStarsGame from '../games/CatchStarsGame'
 import BalloonPopGame from '../games/BalloonPopGame'
+import MazeGame from '../games/MazeGame'
+import SpaceRaceGame from '../games/SpaceRaceGame'
+import TargetHitGame from '../games/TargetHitGame'
 import WordImageMatchGame from '../games/WordImageMatchGame'
 import ListeningGame from '../games/ListeningGame'
 import VocabQuizGame from '../games/VocabQuizGame'
@@ -32,7 +35,16 @@ export default function GameScreen() {
 
   const game = getGameById(gameId)
   const [round, setRound] = useState(0)
-  const [result, setResult] = useState<{ correct: number; total: number; xpEarned: number; perfect: boolean; newAchievements: string[]; leveledUp: boolean } | null>(null)
+  const [result, setResult] = useState<{
+    correct: number
+    total: number
+    xpEarned: number
+    perfect: boolean
+    newAchievements: string[]
+    leveledUp: boolean
+    best: number
+    isNewBest: boolean
+  } | null>(null)
 
   const lang = (searchParams.get('lang') as LangCode) || progress.selectedLanguage
   const level = useMemo<LevelId>(() => {
@@ -63,6 +75,7 @@ export default function GameScreen() {
 
   const handleFinish = (r: GameFinishResult) => {
     const durationSec = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000))
+    const prevBest = progress.bestScores[game.id] ?? 0
     const { xpEarned, newAchievements, leveledUp } = recordGameResult({
       gameId: game.id,
       lang: game.category === 'language' ? lang : undefined,
@@ -80,6 +93,8 @@ export default function GameScreen() {
       perfect: r.total > 0 && r.correct === r.total,
       newAchievements,
       leveledUp,
+      best: Math.max(prevBest, r.correct),
+      isNewBest: r.correct > prevBest,
     })
   }
 
@@ -91,6 +106,12 @@ export default function GameScreen() {
         return <CatchStarsGame key={round} onFinish={handleFinish} />
       case 'balloon_pop':
         return <BalloonPopGame key={round} onFinish={handleFinish} />
+      case 'maze':
+        return <MazeGame key={round} onFinish={handleFinish} />
+      case 'space_race':
+        return <SpaceRaceGame key={round} onFinish={handleFinish} />
+      case 'target_hit':
+        return <TargetHitGame key={round} onFinish={handleFinish} />
       case 'word_image':
         return <WordImageMatchGame key={round} lang={lang} level={level} onFinish={handleFinish} />
       case 'listening':
@@ -138,6 +159,8 @@ export default function GameScreen() {
           perfect={result.perfect}
           newAchievements={result.newAchievements}
           leveledUp={result.leveledUp}
+          best={result.best}
+          isNewBest={result.isNewBest}
           onPlayAgain={() => {
             setResult(null)
             setRound((r) => r + 1)

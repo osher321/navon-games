@@ -15,9 +15,22 @@ interface ResultOverlayProps {
   leveledUp: boolean
   onPlayAgain: () => void
   onBack: () => void
+  best?: number
+  isNewBest?: boolean
 }
 
-export default function ResultOverlay({ correct, total, xpEarned, perfect, newAchievements, leveledUp, onPlayAgain, onBack }: ResultOverlayProps) {
+export default function ResultOverlay({
+  correct,
+  total,
+  xpEarned,
+  perfect,
+  newAchievements,
+  leveledUp,
+  onPlayAgain,
+  onBack,
+  best,
+  isNewBest,
+}: ResultOverlayProps) {
   const { tr } = useI18n()
   const { play } = useSound()
 
@@ -42,6 +55,7 @@ export default function ResultOverlay({ correct, total, xpEarned, perfect, newAc
 
         {perfect && <p className="mt-1 font-fun font-bold text-candy-500">{tr('perfect_score')}</p>}
         {leveledUp && <p className="mt-1 font-fun font-bold text-sunny-600">{tr('level_up')} 🎚️</p>}
+        {isNewBest && <p className="mt-1 font-fun font-bold text-grape-600">{tr('new_record')}</p>}
 
         <div className="mx-auto mt-4 flex max-w-[220px] items-center justify-between rounded-xl2 bg-grass-50 px-4 py-3 font-fun font-extrabold text-grass-600 shadow-card">
           <span>{tr('score')}</span>
@@ -54,6 +68,13 @@ export default function ResultOverlay({ correct, total, xpEarned, perfect, newAc
           <span>{tr('xp')}</span>
           <span>+{xpEarned}</span>
         </div>
+
+        {typeof best === 'number' && best > 0 && (
+          <div className="mx-auto mt-2 flex max-w-[220px] items-center justify-between rounded-xl2 bg-grape-50 px-4 py-3 font-fun font-extrabold text-grape-600 shadow-card">
+            <span>{tr('best_score')}</span>
+            <span>🏆 {best}</span>
+          </div>
+        )}
 
         {newAchievements.length > 0 && (
           <div className="mt-4 space-y-2">

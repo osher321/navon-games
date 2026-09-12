@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react'
 import { useProgress } from './useProgress'
 
-type SoundName = 'correct' | 'wrong' | 'click' | 'success' | 'levelup'
+type SoundName = 'correct' | 'wrong' | 'click' | 'success' | 'levelup' | 'pop' | 'coin' | 'hit' | 'shield'
 
 let sharedCtx: AudioContext | null = null
 function getCtx(): AudioContext | null {
@@ -43,6 +43,33 @@ const PATTERNS: Record<SoundName, (ctx: AudioContext) => void> = {
   },
   levelup: (ctx) => {
     ;[392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(ctx, f, i * 0.09, 0.2))
+  },
+  pop: (ctx) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    const now = ctx.currentTime
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(950, now)
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.09)
+    gain.gain.setValueAtTime(0.001, now)
+    gain.gain.exponentialRampToValueAtTime(0.2, now + 0.012)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.13)
+  },
+  coin: (ctx) => {
+    playTone(ctx, 1046.5, 0, 0.07, 'sine', 0.13)
+    playTone(ctx, 1568, 0.05, 0.09, 'sine', 0.11)
+  },
+  hit: (ctx) => {
+    playTone(ctx, 160, 0, 0.16, 'sawtooth', 0.15)
+    playTone(ctx, 110, 0.05, 0.18, 'sawtooth', 0.12)
+  },
+  shield: (ctx) => {
+    playTone(ctx, 660, 0, 0.1, 'triangle', 0.12)
+    playTone(ctx, 990, 0.08, 0.16, 'triangle', 0.12)
   },
 }
 
