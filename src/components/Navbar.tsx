@@ -68,7 +68,10 @@ export default function Navbar() {
         </div>
       </header>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-around border-t-4 border-white/80 bg-white/95 py-1.5 backdrop-blur-md md:hidden">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 flex justify-around border-t-4 border-white/80 bg-white/95 pt-1.5 backdrop-blur-md md:hidden"
+        style={{ paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom))' }}
+      >
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}

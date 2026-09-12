@@ -9,9 +9,12 @@ export class GtnInput {
   private joystickActive = false
   private jumpButtonDown = false
   private jumpQueued = false
+  private interactQueued = false
 
   private onKeyDown = (e: KeyboardEvent) => {
-    this.keys.add(e.key.toLowerCase())
+    const key = e.key.toLowerCase()
+    if (!this.keys.has(key) && key === 'e') this.interactQueued = true
+    this.keys.add(key)
     if (e.key === ' ' || e.key === 'Spacebar') this.jumpQueued = true
   }
   private onKeyUp = (e: KeyboardEvent) => {
@@ -58,10 +61,30 @@ export class GtnInput {
     return { x, y }
   }
 
+  /** Hold Shift on desktop, or push the joystick close to full tilt on mobile, to run. */
+  isRunning(): boolean {
+    if (this.joystickActive) return Math.hypot(this.joystick.x, this.joystick.y) > 0.78
+    return this.keys.has('shift')
+  }
+
   /** Returns true once per jump request, then resets. */
   consumeJump(): boolean {
     if (this.jumpQueued) {
       this.jumpQueued = false
+      return true
+    }
+    return false
+  }
+
+  /** Call from a mobile "Enter/Exit vehicle" button - same edge-triggered queue as the E key. */
+  queueInteract() {
+    this.interactQueued = true
+  }
+
+  /** Returns true once per mount/dismount request, then resets. */
+  consumeInteract(): boolean {
+    if (this.interactQueued) {
+      this.interactQueued = false
       return true
     }
     return false

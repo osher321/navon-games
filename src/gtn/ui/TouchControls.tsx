@@ -5,11 +5,12 @@ interface TouchControlsProps {
   onJoystickRelease: () => void
   onJumpDown: () => void
   onJumpUp: () => void
+  hideJump?: boolean
 }
 
 const BASE_RADIUS = 52
 
-export default function TouchControls({ onMove, onJoystickRelease, onJumpDown, onJumpUp }: TouchControlsProps) {
+export default function TouchControls({ onMove, onJoystickRelease, onJumpDown, onJumpUp, hideJump }: TouchControlsProps) {
   const [isTouch, setIsTouch] = useState(false)
   const [knob, setKnob] = useState({ x: 0, y: 0 })
   const baseRef = useRef<HTMLDivElement>(null)
@@ -64,18 +65,20 @@ export default function TouchControls({ onMove, onJoystickRelease, onJumpDown, o
         />
       </div>
 
-      <button
-        onPointerDown={(e) => {
-          e.preventDefault()
-          onJumpDown()
-        }}
-        onPointerUp={onJumpUp}
-        onPointerCancel={onJumpUp}
-        onPointerLeave={onJumpUp}
-        className="absolute bottom-8 right-6 z-10 grid h-16 w-16 touch-none place-items-center rounded-full bg-white/80 font-fun text-sm font-extrabold text-ink shadow-card active:scale-90"
-      >
-        JUMP
-      </button>
+      {!hideJump && (
+        <button
+          onPointerDown={(e) => {
+            e.preventDefault()
+            onJumpDown()
+          }}
+          onPointerUp={onJumpUp}
+          onPointerCancel={onJumpUp}
+          onPointerLeave={onJumpUp}
+          className="absolute bottom-8 right-6 z-10 grid h-16 w-16 touch-none place-items-center rounded-full bg-white/80 font-fun text-sm font-extrabold text-ink shadow-card active:scale-90"
+        >
+          JUMP
+        </button>
+      )}
     </>
   )
 }

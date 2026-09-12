@@ -369,10 +369,14 @@ export default function MazeGame({ onFinish }: FunGameProps) {
     <button
       onPointerDown={(e) => {
         e.preventDefault()
+        // Claim this pointer so a slight finger shift - or the button's own
+        // active:scale-90 shrinking under the fingertip - can never hand the
+        // rest of this touch stream to the page's scroll/gesture handling
+        // or let it "leave" the element before pointerup fires.
+        e.currentTarget.setPointerCapture?.(e.pointerId)
         dpadPress(dir)
       }}
       onPointerUp={() => dpadRelease(dir)}
-      onPointerLeave={() => dpadRelease(dir)}
       onPointerCancel={() => dpadRelease(dir)}
       className={`grid h-12 w-12 touch-none place-items-center rounded-2xl bg-white text-xl shadow-card btn-pressable active:scale-90 ${extraClass}`}
       aria-label={icon}
@@ -457,8 +461,14 @@ export default function MazeGame({ onFinish }: FunGameProps) {
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-center">
-        <div dir="ltr" className="grid grid-cols-3 grid-rows-3 gap-1">
+      <div
+        className="fixed inset-x-0 z-30 flex touch-none items-center justify-center md:static md:z-auto md:mt-4 md:touch-auto"
+        style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom))' }}
+      >
+        <div
+          dir="ltr"
+          className="grid touch-none grid-cols-3 grid-rows-3 gap-1 rounded-3xl bg-white/60 p-1.5 shadow-card backdrop-blur-sm md:touch-auto md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0"
+        >
           <div />
           {dpadBtn([-1, 0], '⬆️')}
           <div />

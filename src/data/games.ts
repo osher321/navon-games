@@ -7,6 +7,7 @@ export const FUN_GAMES: GameDef[] = [
   { id: 'maze', category: 'fun', icon: '👾', color: 'from-grape-500 to-candy-500', nameKey: 'game_maze_name', descKey: 'game_maze_desc', isNew: true },
   { id: 'space_race', category: 'fun', icon: '🚀', color: 'from-ink to-grape-600', nameKey: 'game_space_race_name', descKey: 'game_space_race_desc', isNew: true },
   { id: 'target_hit', category: 'fun', icon: '🏹', color: 'from-candy-500 to-sunny-500', nameKey: 'game_target_hit_name', descKey: 'game_target_hit_desc', isNew: true },
+  { id: 'hebrew_memory', category: 'fun', icon: '🔤', color: 'from-candy-400 to-sky-400', nameKey: 'game_hebrew_memory_name', descKey: 'game_hebrew_memory_desc', isNew: true },
 ]
 
 export const LANGUAGE_GAMES: GameDef[] = [
