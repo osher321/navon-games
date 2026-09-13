@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { addFacadeBuilding, placeGrid, pick, type BuildContext } from '../world'
+import { addFacadeBuilding, placeGrid, pick, registerEntrance, type BuildContext } from '../world'
 import { sidewalkTexture } from '../textures'
 import { buildDistrictGround, perimeterLoop } from './districtHelpers'
 import { buildPatrolNpc } from '../npc'
@@ -13,7 +13,7 @@ export const businessDistrict: RegionDef = {
   id: 'business',
   bounds: BOUNDS,
   build: (): RegionBuild => {
-    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
     ctx.group.name = 'region-business'
 
     buildDistrictGround(ctx, BOUNDS, sidewalkTexture((BOUNDS.xMax - BOUNDS.xMin) / 4, (BOUNDS.zMax - BOUNDS.zMin) / 4))
@@ -27,6 +27,8 @@ export const businessDistrict: RegionDef = {
         const footprint = Math.min(cellW, cellD) * 0.6
         const height = 14 + (i % 6) * 4.5
         addFacadeBuilding(ctx, footprint, height, footprint, pick(OFFICE_COLORS, i), cx, cz, i + 5)
+        const facing = cz > 0 ? Math.PI : 0
+        registerEntrance(ctx, `business-${i}`, 'office', cx, cz, footprint, footprint, facing, `office:biz${i}`, 'כניסה למשרדים')
       }
     )
 
@@ -39,6 +41,6 @@ export const businessDistrict: RegionDef = {
     npcs.forEach((n) => ctx.group.add(n.root))
     traffic.forEach((t) => ctx.group.add(t.root))
 
-    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic }
+    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic, buildingEntrances: ctx.buildingEntrances }
   },
 }

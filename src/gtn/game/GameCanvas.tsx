@@ -31,10 +31,16 @@ import { RegionManager } from './regions/RegionManager'
 import { ALL_REGIONS } from './regions'
 import type { LiveActor } from './regions/types'
 import { buildPatrolNpc, buildSittingNpc } from './npc'
-import { buildTrafficCar } from './traffic'
+import { buildTrafficCar, type TrafficVehicle } from './traffic'
 import { WeaponSystem } from './weapons/WeaponSystem'
 import { buildTarget, TARGET_SPOTS } from './targets'
+import { buildInteriorFromId } from './interiors/registry'
+import type { InteriorBuild, InteriorInteractable, BuildingEntranceSpawn } from './interiors/types'
+import { buildDolphinPods } from './dolphins'
 import TouchControls from '../ui/TouchControls'
+
+/** Beyond this distance from the player, a dolphin pod skips its full swim/jump simulation entirely and just idles on the waves - the ocean is huge, so this is what keeps marine life cheap everywhere the player isn't. */
+const DOLPHIN_ACTIVE_RADIUS = 45
 
 interface GameCanvasProps {
   onExit: () => void
@@ -44,6 +50,8 @@ interface VehicleInstance {
   kind: VehicleKind
   controller: VehicleController
 }
+
+const DOOR_ENTER_RADIUS = 2.4
 
 const ENTER_RADIUS = 2.6
 /** Above this many world units of clear air below them, exiting an air vehicle drops the character into a parachute fall instead of snapping them to the ground. */
@@ -66,6 +74,10 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
   const [drivingKind, setDrivingKind] = useState<VehicleKind | null>(null)
   const [weaponEquipped, setWeaponEquipped] = useState(false)
   const [ammo, setAmmo] = useState({ magazine: 0, reserve: 0, reloading: false })
+  const [nearbyDoorLabel, setNearbyDoorLabel] = useState<string | null>(null)
+  const [insideBuilding, setInsideBuilding] = useState(false)
+  const [nearbyInteractLabel, setNearbyInteractLabel] = useState<string | null>(null)
+  const [infoPopup, setInfoPopup] = useState<{ title: string; subtitle: string } | null>(null)
 
   useEffect(() => {
     const mount = mountRef.current
@@ -138,6 +150,13 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
     const ocean = buildOcean(OCEAN_WIDTH, OCEAN_DEPTH, 0, OCEAN_CENTER_Z)
     scene.add(ocean.mesh)
 
+    // Marine life - a handful of dolphin pods spread across the open sea
+    // (never on the beach, never inside the boat/jet-ski spawns), each
+    // pod's own swim/jump simulation only running in full once the player
+    // is actually close enough to notice.
+    const dolphinPods = buildDolphinPods()
+    dolphinPods.forEach((pod) => scene.add(pod.group))
+
     const player = new Player()
     player.position.copy(SPAWN_POINT)
     scene.add(player.root)
@@ -168,6 +187,17 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       { kind: 'airplane', controller: new VehicleController(VEHICLE_CONFIGS.airplane, buildAirplane(), PLANE_SPAWN.clone(), 0) },
       { kind: 'balloon', controller: new VehicleController(VEHICLE_CONFIGS.balloon, buildBalloon(), BALLOON_SPAWN.clone(), 0) },
     ]
+    // Every parked car scattered around downtown by buildCity() is a full
+    // instance too, not scenery - each gets its own VehicleController from
+    // its spawn data, exactly like the hand-placed vehicles above, so the
+    // mount-scan below (which just iterates `vehicles`) picks them up for
+    // free with no per-kind special-casing.
+    city.parkedCarSpawns.forEach((spawn) => {
+      vehicles.push({
+        kind: 'car',
+        controller: new VehicleController(VEHICLE_CONFIGS.car, buildCar(spawn.color), spawn.position.clone(), spawn.heading),
+      })
+    })
     vehicles.forEach((v) => scene.add(v.controller.root))
 
     const waterBounds: Collider[] = [{ minX: -OCEAN_WIDTH / 2, maxX: OCEAN_WIDTH / 2, minZ: SAND_END_Z, maxZ: 100000 }]
@@ -189,7 +219,11 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       buildPatrolNpc([new THREE.Vector3(20, 0, 22), new THREE.Vector3(38, 0, 8)], 217),
     ]
     coreNpcs.forEach((n) => scene.add(n.root))
-    const coreTraffic: LiveActor[] = [
+    // Traffic vehicles are, structurally, also `VehicleInstance`s (same
+    // `kind`/`controller` shape) - the mount-scan below folds them in
+    // alongside `vehicles`, so a looping traffic car becomes just another
+    // enterable instance the moment the player walks up to it.
+    const coreTraffic: TrafficVehicle[] = [
       buildTrafficCar(
         [new THREE.Vector3(44, 0, 44), new THREE.Vector3(-44, 0, 44), new THREE.Vector3(-44, 0, -44), new THREE.Vector3(44, 0, -44)],
         221,
@@ -237,7 +271,7 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
     const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(mount)
 
-    let mode: 'onFoot' | VehicleKind = 'onFoot'
+    let mode: 'onFoot' | VehicleKind | 'interior' = 'onFoot'
     let activeVehicle: VehicleInstance | null = null
     // Reused every frame for the mount line-of-sight check below - a plain
     // distance check would let the player mount a vehicle parked on the
@@ -249,6 +283,21 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
     let lastAmmo = { magazine: -1, reserve: -1, reloading: false }
     let elapsed = 0
 
+    // ----- Interiors -----
+    // At most one interior is ever built at a time - it's created the
+    // instant the player opens a door and disposed the instant they leave,
+    // which is the whole "interior streaming" strategy: with dozens of
+    // enterable buildings in the city, none of their geometry exists in
+    // memory except the one the player is actually standing inside.
+    let activeInterior: InteriorBuild | null = null
+    // Where (and which way) to place the player back outdoors on exit -
+    // the exact door they walked through, not some fixed spawn point.
+    let exteriorReturn: { position: THREE.Vector3; facing: number } | null = null
+    let lastNearbyDoorId: string | null = null
+    let lastInsideBuilding = false
+    let lastNearbyInteractId: string | null = null
+    let infoPopupTimer = 0
+
     let raf = 0
     let last = performance.now()
     const loop = () => {
@@ -259,7 +308,46 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       elapsed += dt
       ocean.update(elapsed)
 
-      regionManager.update(player.position.x, player.position.z)
+      // Dolphins: full swim/jump simulation only for pods within range of
+      // the player's real world position - skipped entirely while indoors,
+      // where `player.position` is momentarily an interior's own small
+      // local coordinate space (comparing it against ocean-scale pod
+      // centers would be meaningless, and the ocean isn't even visible
+      // then anyway). Whichever single active dolphin ends up nearest the
+      // player gets a boosted chance to jump soon, for an occasional
+      // "special moment" rather than pure chance.
+      if (activeInterior) {
+        for (const pod of dolphinPods) pod.updateIdle(elapsed)
+      } else {
+        let nearestDolphin: (typeof dolphinPods)[number]['dolphins'][number] | null = null
+        let nearestDolphinDist = Infinity
+        const activePods = dolphinPods.filter((pod) => {
+          const active = Math.hypot(pod.center.x - player.position.x, pod.center.z - player.position.z) < DOLPHIN_ACTIVE_RADIUS + 12
+          if (!active) pod.updateIdle(elapsed)
+          return active
+        })
+        for (const pod of activePods) {
+          for (const d of pod.dolphins) {
+            const dist = Math.hypot(d.x - player.position.x, d.z - player.position.z)
+            if (dist < nearestDolphinDist) {
+              nearestDolphinDist = dist
+              nearestDolphin = d
+            }
+          }
+        }
+        for (const pod of activePods) pod.update(dt, elapsed, nearestDolphin)
+      }
+
+      // Never unload a region out from under the specific vehicle the
+      // player is currently sitting in, even if they've since driven past
+      // its unload radius - only ever matters for a region's own traffic
+      // vehicle, since every other instance lives in the always-on core.
+      // Skipped entirely while indoors: `player.position` is temporarily
+      // the interior's own small local coordinate space, not a real world
+      // position, so checking it against region bounds would be meaningless
+      // - the outdoor region set simply stays frozen at whatever it was the
+      // instant the player walked through the door.
+      if (!activeInterior) regionManager.update(player.position.x, player.position.z, activeVehicle?.controller ?? null)
       // Recomputed every frame from small, mostly-unchanging arrays - cheap
       // next to the render itself, and far simpler than trying to patch
       // these in only on the (infrequent) frames a region's active set
@@ -267,15 +355,38 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       const playerColliders = [...city.colliders, ...regionManager.getActiveColliders()]
       const wheeledColliders = [...city.colliders, ...city.shorelineColliders, ...regionManager.getActiveColliders()]
       const occluders = [...city.collidableMeshes, ...regionManager.getActiveMeshes()]
+      const activeTraffic = regionManager.getActiveTraffic()
+      const doorCandidates: BuildingEntranceSpawn[] = [...city.buildingEntrances, ...regionManager.getActiveEntrances()]
+
+      if (infoPopupTimer > 0) {
+        infoPopupTimer -= dt
+        if (infoPopupTimer <= 0) setInfoPopup(null)
+      }
+      // Every vehicle instance that actually exists right now: the
+      // always-on core vehicles/parked cars plus whichever traffic is
+      // currently streamed in. Built fresh each frame (cheap - a handful of
+      // objects) so the mount-scan below always sees the true, current set
+      // rather than a stale snapshot from whenever the arrays were built.
+      const mountCandidates: VehicleInstance[] = [...vehicles, ...coreTraffic, ...activeTraffic]
 
       for (const npc of coreNpcs) npc.update(dt, elapsed)
-      for (const t of coreTraffic) t.update(dt, elapsed)
+      // Skip ticking the autopilot for whichever traffic vehicle the player
+      // is currently driving - otherwise the scripted loop and the
+      // player's own input would fight over the same VehicleController.
+      for (const t of coreTraffic) {
+        if (activeVehicle?.controller !== t.controller) t.update(dt, elapsed)
+      }
       for (const npc of regionManager.getActiveNpcs()) npc.update(dt, elapsed)
-      for (const t of regionManager.getActiveTraffic()) t.update(dt, elapsed)
+      for (const t of activeTraffic) {
+        if (activeVehicle?.controller !== t.controller) t.update(dt, elapsed)
+      }
 
-      // Water vehicles always ride the waves, whether parked or ridden.
-      for (const v of vehicles) {
-        if (VEHICLE_CONFIGS[v.kind].surface === 'water' && v.kind !== mode) {
+      // Water vehicles always ride the waves, whether parked or ridden -
+      // compared by instance (not kind), so a second boat/jetski keeps
+      // bobbing on its own even while a different instance of the same
+      // kind is the one being driven.
+      for (const v of mountCandidates) {
+        if (VEHICLE_CONFIGS[v.kind].surface === 'water' && v !== activeVehicle) {
           v.controller.position.y = waveHeightAt(v.controller.position.x, v.controller.position.z, elapsed)
         }
       }
@@ -311,7 +422,7 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       if (mode === 'onFoot' && !player.isParachuting) {
         let nearest: VehicleInstance | null = null
         let nearestDist = Infinity
-        for (const v of vehicles) {
+        for (const v of mountCandidates) {
           const d = Math.hypot(v.controller.position.x - player.position.x, v.controller.position.z - player.position.z)
           const radius = Math.max(ENTER_RADIUS, VEHICLE_CONFIGS[v.kind].radius + 1.4)
           if (d >= radius || d >= nearestDist) continue
@@ -333,13 +444,51 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
           nearest = v
           nearestDist = d
         }
-        const kind = nearest?.kind ?? null
+
+        // Nearest building door - the exact same nearest-of-many pattern as
+        // the vehicle scan above, run in parallel (not instead of it) so E
+        // always resolves to whichever specific thing - a car or a
+        // building's door - the player is actually standing closest to.
+        let nearestDoor: BuildingEntranceSpawn | null = null
+        let nearestDoorDist = Infinity
+        for (const door of doorCandidates) {
+          const d = Math.hypot(door.doorPosition.x - player.position.x, door.doorPosition.z - player.position.z)
+          if (d >= DOOR_ENTER_RADIUS || d >= nearestDoorDist) continue
+          nearestDoor = door
+          nearestDoorDist = d
+        }
+        const doorWins = !!nearestDoor && nearestDoorDist <= nearestDist
+
+        const kind = doorWins ? null : nearest?.kind ?? null
         if (kind !== lastNearbyKind) {
           lastNearbyKind = kind
           setNearbyKind(kind)
         }
+        const doorId = doorWins ? nearestDoor!.id : null
+        if (doorId !== lastNearbyDoorId) {
+          lastNearbyDoorId = doorId
+          setNearbyDoorLabel(doorWins ? nearestDoor!.label : null)
+        }
 
-        if (nearest && input.consumeInteract()) {
+        if (doorWins && input.consumeInteract()) {
+          const door = nearestDoor!
+          activeInterior = buildInteriorFromId(door.interiorId)
+          exteriorReturn = { position: door.doorPosition.clone(), facing: door.doorFacing + Math.PI }
+          scene.remove(player.root)
+          activeInterior.scene.add(player.root)
+          player.root.position.copy(activeInterior.spawnPoint)
+          player.root.rotation.set(0, activeInterior.spawnFacing, 0)
+          // Without this the camera's own smoothing would lerp from wherever
+          // it was outdoors toward the interior's small local-coordinate
+          // space over several frames - a brief, nonsensical swoop through
+          // unrelated geometry instead of an immediate cut.
+          chaseCamera.resetOcclusion()
+          mode = 'interior'
+          lastNearbyDoorId = null
+          setNearbyDoorLabel(null)
+          setInsideBuilding(true)
+          lastInsideBuilding = true
+        } else if (nearest && !doorWins && input.consumeInteract()) {
           activeVehicle = nearest
           mode = nearest.kind
           player.setDrivingPose()
@@ -352,6 +501,61 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
           player.update(dt, move.x, move.y, input.isRunning(), input.consumeJump(), playerColliders, elapsed)
           chaseCamera.update(dt, player.position, player.facing, occluders)
         }
+      } else if (mode === 'interior' && activeInterior) {
+        const interior = activeInterior
+        const move = input.getMove()
+        player.update(dt, move.x, move.y, input.isRunning(), input.consumeJump(), interior.colliders, elapsed, {
+          heightAt: interior.heightAt,
+          bounds: interior.bounds,
+        })
+        chaseCamera.update(dt, player.position, player.facing, interior.collidableMeshes, { distance: 3.1, height: 1.75, lookHeight: 1.05 })
+        for (const npc of interior.npcs) npc.update(dt, elapsed)
+
+        // Nearest of: the exit (back outdoors) or an inspectable item -
+        // exactly the same "one nearest, one E" pattern as everywhere else.
+        const exitDist = Math.hypot(interior.exitPoint.position.x - player.position.x, interior.exitPoint.position.z - player.position.z)
+        const nearExit = exitDist < interior.exitPoint.radius
+
+        let nearestItem: InteriorInteractable | null = null
+        let nearestItemDist = Infinity
+        for (const it of interior.interactables) {
+          const d = Math.hypot(it.position.x - player.position.x, it.position.z - player.position.z)
+          if (d < it.radius && d < nearestItemDist) {
+            nearestItem = it
+            nearestItemDist = d
+          }
+        }
+        const exitWins = nearExit && exitDist <= nearestItemDist
+
+        const interactId = exitWins ? 'exit' : nearestItem?.id ?? null
+        if (interactId !== lastNearbyInteractId) {
+          lastNearbyInteractId = interactId
+          setNearbyInteractLabel(exitWins ? 'יציאה' : nearestItem?.label ?? null)
+        }
+
+        if (exitWins && input.consumeInteract()) {
+          interior.dispose()
+          activeInterior = null
+          interior.scene.remove(player.root)
+          scene.add(player.root)
+          if (exteriorReturn) {
+            player.root.position.copy(exteriorReturn.position)
+            player.root.rotation.set(0, exteriorReturn.facing, 0)
+          }
+          exteriorReturn = null
+          chaseCamera.resetOcclusion()
+          mode = 'onFoot'
+          lastNearbyInteractId = null
+          setNearbyInteractLabel(null)
+          setInsideBuilding(false)
+          lastInsideBuilding = false
+        } else if (nearestItem && !exitWins && input.consumeInteract()) {
+          const result = nearestItem.onInteract()
+          if (result) {
+            setInfoPopup(result)
+            infoPopupTimer = 3.5
+          }
+        }
       } else if (mode === 'onFoot') {
         // Parachuting: still an "on foot" state as far as mode is
         // concerned (no vehicle owns them), just skip the mount-scan above
@@ -359,7 +563,7 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
         const move = input.getMove()
         player.update(dt, move.x, move.y, input.isRunning(), input.consumeJump(), playerColliders, elapsed)
         chaseCamera.update(dt, player.position, player.facing, occluders)
-      } else if (activeVehicle) {
+      } else if (mode !== 'interior' && activeVehicle) {
         const cfg = VEHICLE_CONFIGS[mode]
         const move = input.getMove()
         const colliders = cfg.surface === 'water' ? waterBounds : cfg.surface === 'air' ? noColliders : wheeledColliders
@@ -413,24 +617,31 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
         }
       }
 
-      // The sky dome has a fixed radius around its own origin - with a
-      // world this much bigger, the camera would eventually travel outside
-      // that sphere and the (BackSide) dome would vanish entirely instead
-      // of just looking flat. Recentering it under the camera every frame
-      // (XZ only, so the vertical gradient still reads correctly regardless
-      // of camera height) keeps it "infinitely far away" everywhere, the
-      // same trick real skyboxes use.
-      sky.position.set(chaseCamera.camera.position.x, 0, chaseCamera.camera.position.z)
-      // Same idea for the sun's shadow frustum, which is only ~100x100
-      // units wide - keep it centered on the player so shadows don't
-      // disappear once they're out in the new districts.
-      sun.position.set(player.position.x + SUN_OFFSET.x, SUN_OFFSET.y, player.position.z + SUN_OFFSET.z)
-      sun.target.position.set(player.position.x, 0, player.position.z)
-      // The visible sun disc itself just needs to sit far away in the sun's
-      // direction, comfortably inside the 180-radius sky dome.
-      sunVisual.position.copy(chaseCamera.camera.position).addScaledVector(DAY_PRESET.sunDirection, 150)
+      // The sky/sun/cloud recentering below only matters for the outdoor
+      // scene, which isn't even what's being rendered while indoors - and
+      // while indoors `player.position` is the interior's own small local
+      // coordinate space, not a real world position, so recentering the
+      // outdoor sun/shadow frustum on it would be meaningless.
+      if (!activeInterior) {
+        // The sky dome has a fixed radius around its own origin - with a
+        // world this much bigger, the camera would eventually travel outside
+        // that sphere and the (BackSide) dome would vanish entirely instead
+        // of just looking flat. Recentering it under the camera every frame
+        // (XZ only, so the vertical gradient still reads correctly regardless
+        // of camera height) keeps it "infinitely far away" everywhere, the
+        // same trick real skyboxes use.
+        sky.position.set(chaseCamera.camera.position.x, 0, chaseCamera.camera.position.z)
+        // Same idea for the sun's shadow frustum, which is only ~100x100
+        // units wide - keep it centered on the player so shadows don't
+        // disappear once they're out in the new districts.
+        sun.position.set(player.position.x + SUN_OFFSET.x, SUN_OFFSET.y, player.position.z + SUN_OFFSET.z)
+        sun.target.position.set(player.position.x, 0, player.position.z)
+        // The visible sun disc itself just needs to sit far away in the sun's
+        // direction, comfortably inside the 180-radius sky dome.
+        sunVisual.position.copy(chaseCamera.camera.position).addScaledVector(DAY_PRESET.sunDirection, 150)
+      }
 
-      renderer.render(scene, chaseCamera.camera)
+      renderer.render(activeInterior ? activeInterior.scene : scene, chaseCamera.camera)
     }
     loop()
 
@@ -440,6 +651,7 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       resizeObserver.disconnect()
       input.dispose()
       inputRef.current = null
+      if (activeInterior) (activeInterior as InteriorBuild).dispose()
       regionManager.dispose()
       envTexture.dispose()
       renderer.dispose()
@@ -455,7 +667,13 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
   }, [])
 
   const showPrompt = nearbyKind && !drivingKind
+  const showDoorPrompt = !!nearbyDoorLabel && !drivingKind && !insideBuilding
   const isFlying = drivingKind === 'airplane' || drivingKind === 'balloon'
+  // One mobile button, whatever's currently nearest - a vehicle, a
+  // building's door, an item to inspect, or the way back outside - so
+  // mobile always has exactly the same single E-equivalent control desktop
+  // does, never two competing buttons at once.
+  const mobileAction = insideBuilding || showDoorPrompt ? { icon: '🚪', label: 'כניסה / יציאה' } : showPrompt ? { icon: '🚗', label: 'כניסה / יציאה' } : null
 
   return (
     <div className="relative h-[70vh] w-full overflow-hidden rounded-blob bg-ink shadow-pop sm:h-[75vh]">
@@ -474,6 +692,25 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
         </div>
       )}
 
+      {showDoorPrompt && (
+        <div className="absolute left-1/2 top-6 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card">
+          🚪 E - {nearbyDoorLabel}
+        </div>
+      )}
+
+      {insideBuilding && nearbyInteractLabel && (
+        <div className="absolute left-1/2 top-6 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card">
+          E - {nearbyInteractLabel}
+        </div>
+      )}
+
+      {infoPopup && (
+        <div className="absolute left-1/2 top-20 z-10 -translate-x-1/2 rounded-blob bg-white/95 px-5 py-3 text-center font-fun shadow-card">
+          <div className="text-sm font-extrabold text-ink">{infoPopup.title}</div>
+          <div className="text-xs font-bold text-ink/70">{infoPopup.subtitle}</div>
+        </div>
+      )}
+
       {drivingKind && (
         <button
           onClick={() => inputRef.current?.queueInteract()}
@@ -485,18 +722,29 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
         </button>
       )}
 
-      {showPrompt && (
+      {insideBuilding && (
+        <button
+          onClick={() => inputRef.current?.queueInteract()}
+          className="absolute left-1/2 top-6 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card btn-pressable"
+        >
+          🚪 יציאה
+        </button>
+      )}
+
+      {mobileAction && (
         <button
           onClick={() => inputRef.current?.queueInteract()}
           // Pushed up from its old bottom-32 to clear the weapon button
           // stack (jump/weapon/fire) below, which occupies the same corner
           // whenever the player is on foot - including while standing right
-          // next to a vehicle they haven't entered yet. A pill, not the old
-          // fixed 64px circle, since the required Hebrew label is longer
-          // than the "Enter" text that circle was originally sized for.
+          // next to a vehicle/door they haven't entered yet. A pill, not a
+          // fixed 64px circle, since the Hebrew label is longer than a
+          // one-word "Enter" would be. One button, whatever's nearest - a
+          // vehicle, a building door, or the way back outside - performs
+          // exactly the same action E does.
           className="absolute bottom-72 right-6 z-20 touch-none whitespace-nowrap rounded-full bg-sunny-400 px-4 py-3 font-fun text-xs font-extrabold text-ink shadow-card active:scale-90 sm:hidden"
         >
-          🚗 כניסה / יציאה
+          {mobileAction.icon} {mobileAction.label}
         </button>
       )}
 
@@ -527,9 +775,9 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
               }
             : null
         }
-        weaponAction={!drivingKind ? { label: '🔫', onTap: () => inputRef.current?.queueWeaponToggle() } : null}
+        weaponAction={!drivingKind && !insideBuilding ? { label: '🔫', onTap: () => inputRef.current?.queueWeaponToggle() } : null}
         fireAction={
-          !drivingKind && weaponEquipped
+          !drivingKind && !insideBuilding && weaponEquipped
             ? {
                 label: '🔥',
                 onDown: () => inputRef.current?.setFireButtonDown(true),

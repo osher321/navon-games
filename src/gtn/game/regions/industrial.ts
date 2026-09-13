@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { box, placeGrid, pick, type BuildContext } from '../world'
+import { box, placeGrid, pick, registerEntrance, type BuildContext } from '../world'
 import { asphaltTexture } from '../textures'
 import { buildDistrictGround, perimeterLoop } from './districtHelpers'
 import { buildPatrolNpc } from '../npc'
@@ -13,7 +13,7 @@ export const industrialDistrict: RegionDef = {
   id: 'industrial',
   bounds: BOUNDS,
   build: (): RegionBuild => {
-    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
     ctx.group.name = 'region-industrial'
 
     buildDistrictGround(ctx, BOUNDS, asphaltTexture((BOUNDS.xMax - BOUNDS.xMin) / 6, (BOUNDS.zMax - BOUNDS.zMin) / 6))
@@ -35,6 +35,8 @@ export const industrialDistrict: RegionDef = {
         ctx.group.add(shed)
         ctx.collidableMeshes.push(shed)
         ctx.colliders.push({ minX: cx - w / 2, maxX: cx + w / 2, minZ: cz - d / 2, maxZ: cz + d / 2 })
+        const facing = cz > 0 ? Math.PI : 0
+        registerEntrance(ctx, `warehouse-${i}`, 'office', cx, cz, w, d, facing, `office:wh${i}`, 'כניסה למחסן')
       }
     )
 
@@ -58,6 +60,6 @@ export const industrialDistrict: RegionDef = {
     npcs.forEach((n) => ctx.group.add(n.root))
     traffic.forEach((t) => ctx.group.add(t.root))
 
-    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic }
+    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic, buildingEntrances: ctx.buildingEntrances }
   },
 }

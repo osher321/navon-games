@@ -1,8 +1,25 @@
 import * as THREE from 'three'
-import { addFacadeBuilding, type BuildContext } from './world'
+import { addFacadeBuilding, registerEntrance, type BuildContext } from './world'
+import type { BuildingKind } from './interiors/types'
 
 export const SHOP_TYPES = ['clothing', 'shoes', 'restaurant', 'cafe', 'pizzeria', 'supermarket', 'barber'] as const
 export type ShopType = (typeof SHOP_TYPES)[number]
+
+/**
+ * Every shop type gets a real, walkable interior - `clothing`/`supermarket`
+ * already have a bespoke template; the rest (restaurant/cafe/pizzeria/
+ * barber) route to the generic lobby fallback until they earn their own
+ * template, exactly like a downtown office tower does today.
+ */
+const SHOP_INTERIOR_KIND: Record<ShopType, BuildingKind> = {
+  clothing: 'clothing',
+  shoes: 'genericShop',
+  restaurant: 'genericShop',
+  cafe: 'genericShop',
+  pizzeria: 'genericShop',
+  supermarket: 'supermarket',
+  barber: 'genericShop',
+}
 
 const SHOP_META: Record<ShopType, { color: number; icon: string; label: string }> = {
   clothing: { color: 0xe0537a, icon: '👕', label: 'FASHION' },
@@ -81,5 +98,6 @@ export function buildShopFront(
     entryPoint,
     entryFacing: facing + Math.PI,
   }
+  registerEntrance(ctx, `shopfront-${type}-${variant}`, SHOP_INTERIOR_KIND[type], cx, cz, w, d, facing, `${SHOP_INTERIOR_KIND[type]}:sf${variant}`, `כניסה ל${SHOP_META[type].label}`)
   return building
 }

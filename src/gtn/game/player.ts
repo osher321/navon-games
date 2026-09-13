@@ -122,14 +122,32 @@ export class Player {
     this.parts.rightArm.rotation.z = -0.12
   }
 
-  /** worldMoveX/Z: absolute world-space direction, magnitude 0..1 (joystick tilt or keyboard). `time`: total elapsed seconds, used to sample the water surface while swimming. */
-  update(dt: number, worldMoveX: number, worldMoveZ: number, running: boolean, jumpRequested: boolean, colliders: Collider[], time: number) {
+  /**
+   * worldMoveX/Z: absolute world-space direction, magnitude 0..1 (joystick
+   * tilt or keyboard). `time`: total elapsed seconds, used to sample the
+   * water surface while swimming. `indoor`, when given, swaps the outdoor
+   * ground-height/world-bounds/water logic for an interior's own floor
+   * height function (real stairs are just a ramp in that function) and
+   * room bounds, and disables swimming entirely - the exact same walk/run/
+   * jump/collision code just runs against a different floor and a smaller
+   * box instead of the open world.
+   */
+  update(
+    dt: number,
+    worldMoveX: number,
+    worldMoveZ: number,
+    running: boolean,
+    jumpRequested: boolean,
+    colliders: Collider[],
+    time: number,
+    indoor?: { heightAt: (x: number, z: number) => number; bounds: { minX: number; maxX: number; minZ: number; maxZ: number } }
+  ) {
     if (this.parachutingNow) {
       this.updateParachute(dt, worldMoveX, worldMoveZ)
       return
     }
 
-    const inWater = isInWater(this.root.position.x, this.root.position.z)
+    const inWater = !indoor && isInWater(this.root.position.x, this.root.position.z)
     this.swimmingNow = inWater
 
     const inputMag = Math.min(1, Math.hypot(worldMoveX, worldMoveZ))
@@ -159,7 +177,7 @@ export class Player {
       this.velocityYValue = 0
       this.grounded = true
     } else {
-      const groundY = getGroundHeightAt(this.root.position.x, this.root.position.z)
+      const groundY = indoor ? indoor.heightAt(this.root.position.x, this.root.position.z) : getGroundHeightAt(this.root.position.x, this.root.position.z)
       if (jumpRequested && this.grounded) {
         this.velocityYValue = JUMP_VELOCITY
         this.grounded = false
@@ -176,8 +194,11 @@ export class Player {
     this.tiltValue += ((inWater ? SWIM_TILT : 0) - this.tiltValue) * Math.min(1, TILT_LERP * dt)
     this.root.rotation.x = this.tiltValue
 
-    this.root.position.x = Math.max(WORLD_WEST_LIMIT, Math.min(WORLD_EAST_LIMIT, this.root.position.x))
-    this.root.position.z = Math.max(WORLD_SOUTH_LIMIT, Math.min(WORLD_NORTH_LIMIT, this.root.position.z))
+    const bounds = indoor
+      ? indoor.bounds
+      : { minX: WORLD_WEST_LIMIT, maxX: WORLD_EAST_LIMIT, minZ: WORLD_SOUTH_LIMIT, maxZ: WORLD_NORTH_LIMIT }
+    this.root.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, this.root.position.x))
+    this.root.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, this.root.position.z))
 
     const targetSpeed01 = moving ? (running ? 1.5 : 1) * inputMag : 0
     this.currentSpeed01 += (targetSpeed01 - this.currentSpeed01) * Math.min(1, dt * 6)

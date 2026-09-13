@@ -1,6 +1,9 @@
 import * as THREE from 'three'
 import type { Collider } from '../collision'
 import type { RegionDef, RegionBuild, LiveActor } from './types'
+import type { TrafficVehicle } from '../traffic'
+import type { VehicleController } from '../vehicles/VehicleController'
+import type { BuildingEntranceSpawn } from '../interiors/types'
 
 const LOAD_MARGIN = 40
 // Bigger than LOAD_MARGIN on purpose - without this gap, standing right on a
@@ -28,7 +31,8 @@ export class RegionManager {
   private collidersCache: Collider[] = []
   private meshesCache: THREE.Object3D[] = []
   private npcsCache: LiveActor[] = []
-  private trafficCache: LiveActor[] = []
+  private trafficCache: TrafficVehicle[] = []
+  private entrancesCache: BuildingEntranceSpawn[] = []
   private dirty = true
 
   constructor(private scene: THREE.Scene) {}
@@ -37,8 +41,15 @@ export class RegionManager {
     this.defs.push(def)
   }
 
-  /** Cheap proximity scan - throttled internally, so calling this every render frame costs nothing extra most frames. */
-  update(playerX: number, playerZ: number) {
+  /**
+   * Cheap proximity scan - throttled internally, so calling this every
+   * render frame costs nothing extra most frames. `drivenController`, when
+   * given, is the vehicle the player currently occupies - a region is never
+   * unloaded (and its meshes disposed) while it owns that vehicle, even if
+   * the player has driven far enough from the district's bounds to
+   * otherwise qualify for unload.
+   */
+  update(playerX: number, playerZ: number, drivenController: VehicleController | null = null) {
     this.frameCounter++
     if (this.frameCounter % CHECK_INTERVAL_FRAMES !== 0) return
 
@@ -58,8 +69,9 @@ export class RegionManager {
       } else {
         const farX = playerX < xMin - UNLOAD_MARGIN || playerX > xMax + UNLOAD_MARGIN
         const farZ = playerZ < zMin - UNLOAD_MARGIN || playerZ > zMax + UNLOAD_MARGIN
-        if (farX || farZ) {
-          const region = this.active.get(def.id)!
+        const region = this.active.get(def.id)!
+        const ownsDrivenVehicle = !!drivenController && region.build.traffic.some((t) => t.controller === drivenController)
+        if ((farX || farZ) && !ownsDrivenVehicle) {
           this.disposeRegion(region.build)
           this.active.delete(def.id)
           this.dirty = true
@@ -88,11 +100,13 @@ export class RegionManager {
     this.meshesCache = []
     this.npcsCache = []
     this.trafficCache = []
+    this.entrancesCache = []
     for (const { build } of this.active.values()) {
       this.collidersCache.push(...build.colliders)
       this.meshesCache.push(...build.collidableMeshes)
       this.npcsCache.push(...build.npcs)
       this.trafficCache.push(...build.traffic)
+      this.entrancesCache.push(...build.buildingEntrances)
     }
     this.dirty = false
   }
@@ -109,8 +123,12 @@ export class RegionManager {
     return this.npcsCache
   }
 
-  getActiveTraffic(): LiveActor[] {
+  getActiveTraffic(): TrafficVehicle[] {
     return this.trafficCache
+  }
+
+  getActiveEntrances(): BuildingEntranceSpawn[] {
+    return this.entrancesCache
   }
 
   dispose() {

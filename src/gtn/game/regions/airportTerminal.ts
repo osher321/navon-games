@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { addFacadeBuilding, box, buildBenches, planeTextured, palette, type BuildContext } from '../world'
+import { addFacadeBuilding, box, buildBenches, planeTextured, palette, registerEntrance, type BuildContext } from '../world'
 import { asphaltTexture, sidewalkTexture } from '../textures'
 import { buildDistrictGround } from './districtHelpers'
 import { buildSittingNpc, buildPatrolNpc } from '../npc'
@@ -13,7 +13,7 @@ export const airportTerminalDistrict: RegionDef = {
   id: 'airportTerminal',
   bounds: BOUNDS,
   build: (): RegionBuild => {
-    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
     ctx.group.name = 'region-airportTerminal'
 
     buildDistrictGround(ctx, BOUNDS, sidewalkTexture((BOUNDS.xMax - BOUNDS.xMin) / 4, (BOUNDS.zMax - BOUNDS.zMin) / 4))
@@ -25,6 +25,8 @@ export const airportTerminalDistrict: RegionDef = {
     const canopy = box(10, 0.4, 72, 0xd8dbe0)
     canopy.position.set(terminalX - 5, 4.2, terminalZ)
     ctx.group.add(canopy)
+    // Faces west, toward the canopy/waiting-bench side built below.
+    registerEntrance(ctx, 'airport-terminal', 'office', terminalX, terminalZ, 8, 70, -Math.PI / 2, 'office:terminal', 'כניסה למסוף')
 
     // Parking lot west of the terminal.
     const lotX = BOUNDS.xMin + 22
@@ -61,6 +63,6 @@ export const airportTerminalDistrict: RegionDef = {
     ]
     npcs.forEach((n) => ctx.group.add(n.root))
 
-    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic: [] }
+    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic: [], buildingEntrances: ctx.buildingEntrances }
   },
 }

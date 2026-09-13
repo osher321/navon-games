@@ -12,7 +12,7 @@ function buildRural(id: string, bounds: DistrictBounds): RegionDef {
     id,
     bounds,
     build: (): RegionBuild => {
-      const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+      const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
       ctx.group.name = `region-${id}`
 
       buildDistrictGround(ctx, bounds, grassTexture((bounds.xMax - bounds.xMin) / 8, (bounds.zMax - bounds.zMin) / 8))
@@ -46,7 +46,7 @@ function buildRural(id: string, bounds: DistrictBounds): RegionDef {
         ctx.colliders.push({ minX: x - scale, maxX: x + scale, minZ: z - scale, maxZ: z + scale })
       }
 
-      return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs: [], traffic: [] }
+      return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs: [], traffic: [], buildingEntrances: [] }
     },
   }
 }

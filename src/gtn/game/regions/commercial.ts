@@ -13,7 +13,7 @@ export const commercialDistrict: RegionDef = {
   id: 'commercial',
   bounds: BOUNDS,
   build: (): RegionBuild => {
-    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
     ctx.group.name = 'region-commercial'
 
     buildDistrictGround(ctx, BOUNDS, sidewalkTexture((BOUNDS.xMax - BOUNDS.xMin) / 4, (BOUNDS.zMax - BOUNDS.zMin) / 4))
@@ -44,6 +44,6 @@ export const commercialDistrict: RegionDef = {
     npcs.forEach((n) => ctx.group.add(n.root))
     traffic.forEach((t) => ctx.group.add(t.root))
 
-    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic }
+    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic, buildingEntrances: ctx.buildingEntrances }
   },
 }

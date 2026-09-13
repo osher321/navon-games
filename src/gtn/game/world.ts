@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import type { Collider } from './collision'
 import { asphaltTexture, sidewalkTexture, sandTexture, grassTexture, buildingFacadeTexture } from './textures'
-import { buildCar } from './vehicles/models'
+import type { BuildingEntranceSpawn, BuildingKind } from './interiors/types'
 
 /**
  * Builds the original GTN neighborhood - every shape here is a primitive
@@ -103,6 +103,52 @@ export interface BuildContext {
   colliders: Collider[]
   shorelineColliders: Collider[]
   collidableMeshes: THREE.Object3D[]
+  buildingEntrances: BuildingEntranceSpawn[]
+}
+
+/**
+ * Marks one exterior building as enterable: stamps a visible door panel on
+ * its front face and registers the door's world position so GameCanvas's
+ * unified "nearest door" scan - the same pattern already used for the
+ * nearest vehicle - picks it up automatically. `facing` follows the exact
+ * same sin/cos heading convention `buildShopFront` (shops.ts) already
+ * established for a building's outward-facing side, so this works
+ * identically for both axis-aligned grid buildings (facing 0 or PI) and
+ * the rotated storefronts built along a district's implied street (facing
+ * ±PI/2) - one convention, not two.
+ *
+ * `interiorId` is a plain string key ("house:3", "supermarket:0", ...)
+ * resolved lazily by `interiors/registry.ts` only once the player actually
+ * opens that one door, which is the whole interior-streaming strategy:
+ * none of a building's interior geometry is ever built until that instant.
+ */
+export function registerEntrance(
+  ctx: BuildContext,
+  id: string,
+  kind: BuildingKind,
+  cx: number,
+  cz: number,
+  w: number,
+  d: number,
+  facing: number,
+  interiorId: string,
+  label: string
+) {
+  const gap = 0.05
+  const doorX = cx + Math.sin(facing) * (w / 2 + gap)
+  const doorZ = cz + Math.cos(facing) * (d / 2 + gap)
+  const door = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 1.95), new THREE.MeshStandardMaterial({ color: 0x3a2a1c, roughness: 0.75 }))
+  door.position.set(doorX, 0.98, doorZ)
+  door.rotation.y = facing
+  ctx.group.add(door)
+
+  const entryGap = 1.6
+  const entryPoint = new THREE.Vector3(
+    cx + Math.sin(facing) * (Math.max(w, d) / 2 + entryGap),
+    0,
+    cz + Math.cos(facing) * (Math.max(w, d) / 2 + entryGap)
+  )
+  ctx.buildingEntrances.push({ id, kind, interiorId, doorPosition: entryPoint, doorFacing: facing + Math.PI, label })
 }
 
 export function box(w: number, h: number, d: number, color: number) {
@@ -342,6 +388,12 @@ function buildDowntown(ctx: BuildContext) {
     const footprint = Math.min(cellW, cellD) * 0.58
     const height = 7 + (i % 5) * 3.6 + (i % 3 === 0 ? 4 : 0)
     addFacadeBuilding(ctx, footprint, height, footprint, pick(palette.downtown, i), cx, cz, i)
+    // Alternates office/apartment towers - every downtown tower gets a real
+    // lobby interior (see interiors/genericLobby.ts and the "apartments"
+    // house-style route in interiors/registry.ts) rather than being a
+    // walk-through-proof box with nothing behind its door.
+    const kind = i % 2 === 0 ? 'office' : 'apartments'
+    registerEntrance(ctx, `downtown-${i}`, kind, cx, cz, footprint, footprint, Math.PI, `${kind}:${i}`, kind === 'office' ? 'כניסה למשרדים' : 'כניסה לבניין')
   })
 }
 
@@ -357,6 +409,7 @@ function buildResidential(ctx: BuildContext) {
     roof.position.set(cx, h + 0.8, cz)
     roof.castShadow = true
     ctx.group.add(roof)
+    registerEntrance(ctx, `house-${i}`, 'house', cx, cz, w, d, Math.PI, `house:${i}`, 'כניסה לבית')
   })
 }
 
@@ -364,6 +417,15 @@ function buildResidential(ctx: BuildContext) {
 // parking lot takes the other half (toward the outer ring road) - kept
 // as separate non-overlapping strips so the lot is actually open pavement.
 const SE_QUADRANT_SPLIT_Z = -27
+
+// Cycled across the shop grid's 8 cells so every specialty store type
+// requested for GTN appears at least twice, not just as a single sample.
+const SHOP_KINDS: { kind: BuildingKind; label: string }[] = [
+  { kind: 'supermarket', label: 'כניסה לסופרמרקט' },
+  { kind: 'clothing', label: 'כניסה לחנות בגדים' },
+  { kind: 'gunshop', label: 'כניסה לחנות נשק' },
+  { kind: 'cardealer', label: 'כניסה לאולם מכוניות' },
+]
 
 function buildShops(ctx: BuildContext) {
   const zone: Zone = { xMin: ROAD_WIDTH / 2 + 1.5, xMax: HALF_SIZE - 1.5, zMin: SE_QUADRANT_SPLIT_Z, zMax: -ROAD_WIDTH / 2 - 7 }
@@ -375,6 +437,8 @@ function buildShops(ctx: BuildContext) {
     const sign = box(w * 0.8, 0.6, 0.15, 0xffffff)
     sign.position.set(cx, h + 0.4, cz + d / 2)
     ctx.group.add(sign)
+    const { kind, label } = SHOP_KINDS[i % SHOP_KINDS.length]
+    registerEntrance(ctx, `shop-${i}`, kind, cx, cz, w, d, 0, `${kind}:${Math.floor(i / SHOP_KINDS.length)}`, label)
   })
 }
 
@@ -688,7 +752,14 @@ function buildTrafficLights(ctx: BuildContext) {
 
 const PARKED_CAR_COLORS = [0x2f6fd6, 0xd63f3f, 0xe0a637, 0x4fb0c9, 0x7226f5]
 
-function buildParkedCars(ctx: BuildContext) {
+/** Where a parked car sits and what color it is - pure placement data, not a mesh. GameCanvas builds the actual driveable `VehicleController` from each spot, the same way it builds every other vehicle instance, so these cars are full instances a player can enter rather than static scenery. */
+export interface ParkedCarSpawn {
+  position: THREE.Vector3
+  heading: number
+  color: number
+}
+
+function buildParkedCarSpawns(): ParkedCarSpawn[] {
   // Tucked just outside the ring road (never inside a building zone, the
   // pier corridor, or the beach transition).
   const spots: [number, number, number, number][] = [
@@ -698,20 +769,11 @@ function buildParkedCars(ctx: BuildContext) {
     [-HALF_SIZE - 3, -28, 0, 3],
     [10, HALF_SIZE + 3, Math.PI / 2, 4],
   ]
-  spots.forEach(([x, z, heading, colorIdx]) => {
-    const car = buildCar(PARKED_CAR_COLORS[colorIdx % PARKED_CAR_COLORS.length])
-    car.rotation.y = heading
-    car.position.set(x, 0, z)
-    car.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) {
-        obj.castShadow = true
-        obj.receiveShadow = true
-      }
-    })
-    ctx.group.add(car)
-    ctx.collidableMeshes.push(car)
-    ctx.colliders.push({ minX: x - 1.0, maxX: x + 1.0, minZ: z - 1.9, maxZ: z + 1.9 })
-  })
+  return spots.map(([x, z, heading, colorIdx]) => ({
+    position: new THREE.Vector3(x, 0, z),
+    heading,
+    color: PARKED_CAR_COLORS[colorIdx % PARKED_CAR_COLORS.length],
+  }))
 }
 
 function buildAirport(ctx: BuildContext) {
@@ -777,10 +839,12 @@ export interface CityBuild {
   colliders: Collider[]
   shorelineColliders: Collider[]
   collidableMeshes: THREE.Object3D[]
+  parkedCarSpawns: ParkedCarSpawn[]
+  buildingEntrances: BuildingEntranceSpawn[]
 }
 
 export function buildCity(): CityBuild {
-  const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+  const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
   ctx.group.name = 'gtn-city'
 
   buildGround(ctx)
@@ -789,7 +853,7 @@ export function buildCity(): CityBuild {
   buildSidewalksAndLamps(ctx)
   buildSigns(ctx)
   buildTrafficLights(ctx)
-  buildParkedCars(ctx)
+  const parkedCarSpawns = buildParkedCarSpawns()
   buildDowntown(ctx)
   buildResidential(ctx)
   buildShops(ctx)
@@ -799,5 +863,5 @@ export function buildCity(): CityBuild {
   buildPier(ctx)
   buildAirport(ctx)
 
-  return ctx
+  return { ...ctx, parkedCarSpawns }
 }

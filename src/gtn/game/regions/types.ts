@@ -1,5 +1,7 @@
 import type * as THREE from 'three'
 import type { Collider } from '../collision'
+import type { TrafficVehicle } from '../traffic'
+import type { BuildingEntranceSpawn } from '../interiors/types'
 
 /** Anything that needs a per-frame update while its owning region is active - an NPC or a looping traffic car. */
 export interface LiveActor {
@@ -13,7 +15,10 @@ export interface RegionBuild {
   colliders: Collider[]
   collidableMeshes: THREE.Object3D[]
   npcs: LiveActor[]
-  traffic: LiveActor[]
+  /** Typed as the richer `TrafficVehicle` (not just `LiveActor`) so GameCanvas can also treat every region's traffic as mountable vehicle instances, not only something it ticks each frame. */
+  traffic: TrafficVehicle[]
+  /** Every enterable building's door in this region - folded into GameCanvas's unified "nearest door" scan alongside the always-on core city's entrances. */
+  buildingEntrances: BuildingEntranceSpawn[]
 }
 
 /**

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { addFacadeBuilding, placeGrid, pick, palette, type BuildContext } from '../world'
+import { addFacadeBuilding, placeGrid, pick, palette, registerEntrance, type BuildContext } from '../world'
 import { grassTexture } from '../textures'
 import { buildDistrictGround, perimeterLoop } from './districtHelpers'
 import { buildPatrolNpc, buildSittingNpc } from '../npc'
@@ -11,7 +11,7 @@ export const residentialWestDistrict: RegionDef = {
   id: 'residentialWest',
   bounds: BOUNDS,
   build: (): RegionBuild => {
-    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [] }
+    const ctx: BuildContext = { group: new THREE.Group(), colliders: [], shorelineColliders: [], collidableMeshes: [], buildingEntrances: [] }
     ctx.group.name = 'region-residentialWest'
 
     buildDistrictGround(ctx, BOUNDS, grassTexture((BOUNDS.xMax - BOUNDS.xMin) / 5, (BOUNDS.zMax - BOUNDS.zMin) / 5))
@@ -31,6 +31,8 @@ export const residentialWestDistrict: RegionDef = {
         roof.position.set(cx, h + 0.8, cz)
         roof.castShadow = true
         ctx.group.add(roof)
+        const facing = cz > 0 ? Math.PI : 0
+        registerEntrance(ctx, `housewest-${i}`, 'house', cx, cz, w, d, facing, `house:w${i}`, 'כניסה לבית')
       }
     )
 
@@ -42,6 +44,6 @@ export const residentialWestDistrict: RegionDef = {
     ]
     npcs.forEach((n) => ctx.group.add(n.root))
 
-    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic: [] }
+    return { group: ctx.group, colliders: ctx.colliders, collidableMeshes: ctx.collidableMeshes, npcs, traffic: [], buildingEntrances: ctx.buildingEntrances }
   },
 }

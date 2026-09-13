@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { VehicleController } from './vehicles/VehicleController'
 import { buildCar, buildMotorcycle } from './vehicles/models'
-import { VEHICLE_CONFIGS } from './vehicles/types'
+import { VEHICLE_CONFIGS, type VehicleKind } from './vehicles/types'
 import { getGroundHeightAt } from './world'
 import type { LiveActor } from './regions/types'
 
@@ -14,13 +14,24 @@ function pickColor(seed: number) {
 }
 
 /**
+ * A traffic car/motorcycle, exposing the same `controller`/`kind` shape a
+ * player-owned `VehicleInstance` does - this is what lets GameCanvas treat
+ * every looping traffic vehicle as just another mountable instance, on top
+ * of ticking its own scripted autopilot each frame.
+ */
+export interface TrafficVehicle extends LiveActor {
+  controller: VehicleController
+  kind: VehicleKind
+}
+
+/**
  * A scripted autopilot looping a car/motorcycle around hand-placed
  * waypoints - reuses the exact same `VehicleController` the player drives,
  * just fed throttle/steer from "face the next waypoint" instead of input.
  * No traffic-light awareness or inter-vehicle collision, matching the
  * "basic system" precedent already set for the airplane.
  */
-export function buildTrafficCar(loop: THREE.Vector3[], seed: number, kind: 'car' | 'motorcycle' = 'car'): LiveActor {
+export function buildTrafficCar(loop: THREE.Vector3[], seed: number, kind: VehicleKind = 'car'): TrafficVehicle {
   const model = kind === 'car' ? buildCar(pickColor(seed)) : buildMotorcycle(pickColor(seed))
   const config = VEHICLE_CONFIGS[kind]
   const controller = new VehicleController(config, model, loop[0].clone(), 0)
@@ -28,6 +39,8 @@ export function buildTrafficCar(loop: THREE.Vector3[], seed: number, kind: 'car'
 
   return {
     root: controller.root,
+    controller,
+    kind,
     update(dt: number) {
       const dest = loop[target]
       const dx = dest.x - controller.position.x
