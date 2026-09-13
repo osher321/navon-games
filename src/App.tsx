@@ -23,6 +23,19 @@ function GTNLoading() {
   )
 }
 
+// The vocabulary academy is its own standalone area (dashboard, 6 levels,
+// 6 game types, tests) rather than a single /play/:gameId game, so - like
+// GTN - it gets a dedicated route and is code-split out of the main bundle.
+const VocabAcademyPage = lazy(() => import('./vocab/VocabAcademyPage'))
+
+function VocabAcademyLoading() {
+  return (
+    <div className="mx-auto flex max-w-4xl items-center justify-center px-4 py-24">
+      <p className="font-fun font-extrabold text-ink/50">Loading...</p>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <div className="min-h-screen">
@@ -38,6 +51,14 @@ export default function App() {
             element={
               <Suspense fallback={<GTNLoading />}>
                 <GTNPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/games/vocab-academy"
+            element={
+              <Suspense fallback={<VocabAcademyLoading />}>
+                <VocabAcademyPage />
               </Suspense>
             }
           />
