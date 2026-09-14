@@ -6,6 +6,8 @@ export const STORY_HE_4: Story = {
   level: 'elementary',
   language: 'he',
   description: 'יובל וכיתתו יוצאים לטיול השנתי לצפון הארץ.',
+  image: '/images/stories/story-he-tiyul.webp',
+  imageAlt: 'שני ילדים מטיילים ליד מפל מים בין הרי הגליל – מתוך הסיפור הטיול השנתי',
   lines: [
     'כל שנה בית הספר מארגן טיול גדול לתלמידי כיתה ו׳.',
     'השנה הכיתה של יובל נסעה לצפון הארץ.',

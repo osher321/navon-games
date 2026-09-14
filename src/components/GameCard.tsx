@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { GameDef } from '../types'
 import { useI18n } from '../i18n/LanguageContext'
+
+const MotionLink = motion(Link)
 
 interface GameCardProps {
   game: GameDef
@@ -9,14 +11,16 @@ interface GameCardProps {
   badge?: string
 }
 
+/** A real `<a href>` (via react-router's Link), not a button+navigate() -
+    Google's crawler discovers internal links from anchor tags, so every
+    game/story/language card site-wide needs to render as one. */
 export default function GameCard({ game, href, badge }: GameCardProps) {
   const { tr } = useI18n()
-  const navigate = useNavigate()
   const target = href ?? `/play/${game.id}`
 
   return (
-    <motion.button
-      onClick={() => navigate(target)}
+    <MotionLink
+      to={target}
       whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
       className={`group relative flex flex-col items-center gap-2 rounded-xl2 bg-gradient-to-br ${game.color} p-5 text-white shadow-pop card-outline btn-pressable`}
@@ -36,6 +40,6 @@ export default function GameCard({ game, href, badge }: GameCardProps) {
       </div>
       <div className="text-center font-fun text-base font-extrabold leading-tight">{tr(game.nameKey)}</div>
       <div className="text-center text-xs font-medium text-white/85">{tr(game.descKey)}</div>
-    </motion.button>
+    </MotionLink>
   )
 }

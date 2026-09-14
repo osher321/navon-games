@@ -6,6 +6,8 @@ export const STORY_HE_8: Story = {
   level: 'beginner',
   language: 'he',
   description: 'אלה מגלה עולם חדש של ספרים בספרייה העירונית.',
+  image: '/images/stories/story-he-library.webp',
+  imageAlt: 'ילדה יושבת וקוראת ספר בין מדפי ספרייה עירונית – מתוך הסיפור הספרייה העירונית',
   lines: [
     'אלה אוהבת לקרוא ספרים כבר מגיל צעיר מאוד.',
     'פעם בשבוע היא הולכת לספרייה העירונית עם אמא.',

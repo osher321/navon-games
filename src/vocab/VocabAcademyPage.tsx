@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import type { LevelNum, VocabWord } from './data/types'
 import { getWordsByLevel, shuffle, ALL_WORDS } from './data/words'
 import { TEST_QUESTION_COUNT } from './data/levels'
@@ -16,16 +16,9 @@ import GameShell from './ui/GameShell'
 import ResultsScreen from './ui/ResultsScreen'
 import TestResultsScreen from './ui/TestResultsScreen'
 import AchievementToast from './ui/AchievementToast'
-import type { StoryLanguage } from './data/stories/types'
-import { getStoriesByLanguage, getStoryById } from './data/stories'
-import StoriesListScreen from './ui/stories/StoriesListScreen'
-import StoryReaderScreen from './ui/stories/StoryReaderScreen'
-
-const STORY_AREA_META: Record<StoryLanguage, { title: string; subtitle: string }> = {
-  en: { title: '📖 סיפורים באנגלית', subtitle: 'English Stories' },
-  es: { title: '📖 סיפורים בספרדית', subtitle: 'Spanish Stories' },
-  he: { title: '📖 סיפורים בעברית', subtitle: 'Hebrew Stories' },
-}
+import Breadcrumbs from '../components/Breadcrumbs'
+import SEOHead from '../seo/SEOHead'
+import { SITE_URL } from '../seo/config'
 
 type PlayOrigin = { type: 'level'; level: LevelNum; gameType: GameTypeId } | { type: 'review' }
 
@@ -36,21 +29,9 @@ type Phase =
   | { name: 'results'; origin: PlayOrigin; correct: number; total: number; xpEarned: number; elapsedSec?: number }
   | { name: 'testPlaying'; level: LevelNum; words: VocabWord[] }
   | { name: 'testResults'; level: LevelNum; outcome: VocabTestOutcome }
-  | { name: 'storiesList' }
-  | { name: 'storyReading'; storyId: string }
 
 export default function VocabAcademyPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  // Stories is a sibling of the Vocabulary Academy under "לומדים שפות →
-  // אנגלית" (not nested inside the academy), reached via its own card in
-  // the Languages hub - but it reuses this exact page/component/progress
-  // store rather than a separate duplicated implementation. `?view=stories`
-  // is the only thing that distinguishes "entered via the Stories card"
-  // from "entered via the Vocabulary Academy card".
-  const enteredViaStories = searchParams.get('view') === 'stories'
-  const storyLanguageParam = searchParams.get('storyLang')
-  const storyLanguage: StoryLanguage = storyLanguageParam === 'es' ? 'es' : storyLanguageParam === 'he' ? 'he' : 'en'
   const {
     progress,
     recordAnswer,
@@ -59,12 +40,10 @@ export default function VocabAcademyPage() {
     recordTestResult,
     consumeAchievements,
     resetCombo,
-    markStoryRead,
-    markStoryCompleted,
   } = useVocabProgress()
   const { speak, canSpeak } = useVocabSpeech()
 
-  const [phase, setPhase] = useState<Phase>(() => (enteredViaStories ? { name: 'storiesList' } : { name: 'dashboard' }))
+  const [phase, setPhase] = useState<Phase>({ name: 'dashboard' })
   const [achievementQueue, setAchievementQueue] = useState<VocabAchievementDef[]>([])
   const [activeAchievement, setActiveAchievement] = useState<VocabAchievementDef | null>(null)
   const sessionXpRef = useRef(0)
@@ -151,24 +130,42 @@ export default function VocabAcademyPage() {
     setPhase({ name: 'testResults', level: phase.level, outcome })
   }
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LearningResource',
+    name: 'אוצר מילים באנגלית - נבון משחקים',
+    description: 'לימוד אוצר מילים באנגלית לפי רמות, באמצעות משחקים ותרגול אינטראקטיבי.',
+    inLanguage: 'en',
+    learningResourceType: 'Vocabulary course',
+    url: `${SITE_URL}/games/vocab-academy`,
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 pb-24">
+      <SEOHead
+        title="אוצר מילים באנגלית לפי רמות | נבון משחקים"
+        description="למדו אוצר מילים באנגלית בצורה מהנה - 6 רמות לפי CEFR, מבחני רמה ומשחקי תרגול (בחירה מרובה, התאמת מילים, השלמת משפטים, האזנה, איות ואתגר מהירות)."
+        path="/games/vocab-academy"
+        jsonLd={jsonLd}
+      />
+      <Breadcrumbs
+        items={[
+          { label: 'דף הבית', href: '/' },
+          { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
+          { label: 'לומדים שפות', href: '/learn-languages' },
+          { label: 'אוצר מילים באנגלית' },
+        ]}
+      />
+
       <AchievementToast achievement={activeAchievement} />
 
       <div className="mb-6 flex items-center justify-between">
-        {phase.name === 'storiesList' || phase.name === 'storyReading' ? (
-          <div>
-            <h1 className="font-fun text-2xl font-extrabold text-ink">{STORY_AREA_META[storyLanguage].title}</h1>
-            <p className="text-xs font-bold text-ink/50">{STORY_AREA_META[storyLanguage].subtitle}</p>
-          </div>
-        ) : (
-          <div>
-            <h1 className="font-fun text-2xl font-extrabold text-ink">🎓 אוצר מילים באנגלית</h1>
-            <p className="text-xs font-bold text-ink/50">English Vocabulary Academy</p>
-          </div>
-        )}
+        <div>
+          <h1 className="font-fun text-2xl font-extrabold text-ink">🎓 אוצר מילים באנגלית</h1>
+          <p className="text-xs font-bold text-ink/50">English Vocabulary Academy</p>
+        </div>
         <button
-          onClick={() => navigate('/languages')}
+          onClick={() => navigate('/learn-languages')}
           className="rounded-full bg-white px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card card-outline btn-pressable"
         >
           ✕ יציאה
@@ -183,34 +180,6 @@ export default function VocabAcademyPage() {
           onReviewMistakes={startReviewMistakes}
         />
       )}
-
-      {phase.name === 'storiesList' && (
-        <StoriesListScreen
-          stories={getStoriesByLanguage(storyLanguage)}
-          readIds={progress.storiesRead}
-          completedIds={progress.storiesCompleted}
-          onSelectStory={(storyId) => setPhase({ name: 'storyReading', storyId })}
-          // Stories is a sibling of the Vocabulary Academy now, reached only
-          // via its own card in the Languages hub - so "back" from the list
-          // always returns there, not to the academy's internal dashboard.
-          onBack={() => navigate('/languages')}
-        />
-      )}
-
-      {phase.name === 'storyReading' &&
-        (() => {
-          const story = getStoryById(phase.storyId)
-          if (!story) return null
-          return (
-            <StoryReaderScreen
-              story={story}
-              isCompleted={progress.storiesCompleted.includes(story.id)}
-              onBack={() => setPhase({ name: 'storiesList' })}
-              onMarkRead={markStoryRead}
-              onMarkCompleted={markStoryCompleted}
-            />
-          )
-        })()}
 
       {phase.name === 'gameMenu' && (
         <GameMenu

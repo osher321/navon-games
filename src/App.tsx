@@ -1,14 +1,33 @@
 import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import GamesHub from './pages/GamesHub'
+import LearningGamesPage from './pages/LearningGamesPage'
+import LearningSubcategoryPage from './pages/LearningSubcategoryPage'
 import LanguagesHub from './pages/LanguagesHub'
 import GameScreen from './pages/GameScreen'
 import Profile from './pages/Profile'
 import Achievements from './pages/Achievements'
 import ParentDashboard from './pages/ParentDashboard'
 import Settings from './pages/Settings'
+
+// The stories feature (30 stories' full text + two large per-language word
+// dictionaries) is real weight that a visitor to the home page, GamesHub,
+// or any other unrelated route should never have to download - same
+// reasoning as GTN and the vocab academy below, so it gets the same
+// code-split + Suspense treatment instead of a static import.
+const StoriesHubPage = lazy(() => import('./pages/StoriesHubPage'))
+const StoriesListPage = lazy(() => import('./pages/StoriesListPage'))
+const StoryReaderPage = lazy(() => import('./pages/StoryReaderPage'))
+
+function StoriesLoading() {
+  return (
+    <div className="mx-auto flex max-w-4xl items-center justify-center px-4 py-24">
+      <p className="font-fun font-extrabold text-ink/50">Loading…</p>
+    </div>
+  )
+}
 
 // GTN is a large, self-contained 3D game (Three.js). It is code-split and
 // only fetched when the user actually opens /games/gtn, so it never adds
@@ -43,8 +62,47 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          {/* /games is the 🎮 "משחקים בשביל הכיף" page. /games/learning is
+              the 📚 "משחקים בשביל ללמוד" hub, with /games/learning/math and
+              /games/learning/logic as its two non-language sub-areas
+              (🌍 לומדים שפות links out to the existing /learn-languages hub
+              instead of duplicating it here). */}
           <Route path="/games" element={<GamesHub />} />
-          <Route path="/languages" element={<LanguagesHub />} />
+          <Route path="/games/learning" element={<LearningGamesPage />} />
+          <Route path="/games/learning/:subcategory" element={<LearningSubcategoryPage />} />
+          {/* /games/math is the clean, canonical URL for the addition/
+              subtraction game (the SEO-focused entry point); /play/:gameId
+              still works for every game including this one, unchanged. */}
+          <Route path="/games/math" element={<GameScreen forcedGameId="math_addition_subtraction" />} />
+          <Route path="/learn-languages" element={<LanguagesHub />} />
+          <Route
+            path="/learn-languages/stories"
+            element={
+              <Suspense fallback={<StoriesLoading />}>
+                <StoriesHubPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/learn-languages/stories/:langSlug"
+            element={
+              <Suspense fallback={<StoriesLoading />}>
+                <StoriesListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/learn-languages/stories/:langSlug/:storyId"
+            element={
+              <Suspense fallback={<StoriesLoading />}>
+                <StoryReaderPage />
+              </Suspense>
+            }
+          />
+          <Route path="/learn-languages/:langSlug" element={<LanguagesHub />} />
+          {/* Old hash-router-era path, kept as a redirect so any existing
+              bookmarks/links still land on a real page instead of a 404. */}
+          <Route path="/languages" element={<Navigate to="/learn-languages" replace />} />
           <Route path="/play/:gameId" element={<GameScreen />} />
           <Route
             path="/games/gtn"

@@ -32,6 +32,10 @@ export interface Story {
   level: StoryLevel
   language: StoryLanguage
   description: string
+  /** Path to this story's unique cover illustration, matching its actual content (scene/characters/setting) rather than a generic placeholder. */
+  image: string
+  /** Descriptive alt text tying the image back to the story - never a generic "story image" placeholder. */
+  imageAlt: string
   lines: string[]
   /** Story-specific words only - common function/frequent words resolve via the shared per-language dictionary (commonWords.ts for English, commonWordsEs.ts for Spanish), so a new story doesn't need to redefine "the"/"el", "was"/"era", "friend"/"amigo", etc. every time. */
   vocabulary: StoryVocabWord[]

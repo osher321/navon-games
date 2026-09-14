@@ -6,6 +6,8 @@ export const STORY_ES_2: Story = {
   level: 'beginner',
   language: 'es',
   description: 'קרלוס נשאר בבית ביום גשום ונהנה מרגיעה פשוטה.',
+  image: '/images/stories/story-es-lluvia.webp',
+  imageAlt: 'בית חם ונעים ביום גשום עם כלב מתחת לחלון – מתוך הסיפור Un Día de Lluvia',
   lines: [
     'Llovía mucho esa mañana en la ciudad.',
     'Carlos decidió quedarse en casa todo el día.',

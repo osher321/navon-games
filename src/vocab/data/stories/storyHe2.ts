@@ -6,6 +6,8 @@ export const STORY_HE_2: Story = {
   level: 'beginner',
   language: 'he',
   description: 'איתן ואמא שלו אופים יחד עוגת שוקולד ליום ההולדת.',
+  image: '/images/stories/story-he-cake.webp',
+  imageAlt: 'ילד ואמו עומדים ליד עוגת שוקולד ליום הולדת – מתוך הסיפור עוגת יום ההולדת',
   lines: [
     'מחר יום ההולדת של איתן והוא מאוד מתרגש.',
     'אמא שלו החליטה להכין עוגת שוקולד בעצמה.',

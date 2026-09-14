@@ -6,6 +6,8 @@ export const STORY_HE_9: Story = {
   level: 'intermediate',
   language: 'he',
   description: 'גיא מתעורר מאוחר ורץ נגד השעון כדי להספיק את הטיסה.',
+  image: '/images/stories/story-he-airport.webp',
+  imageAlt: 'גבר רץ עם מזוודה לעבר מטוס בשדה התעופה – מתוך הסיפור איחור לטיסה',
   lines: [
     'גיא היה אמור לטוס לחופשה עם המשפחה בשעה תשע בבוקר.',
     'הוא התעורר מאוחר כי השעון המעורר שלו לא צלצל.',

@@ -1,19 +1,50 @@
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useI18n } from '../i18n/LanguageContext'
-import { FUN_GAMES } from '../data/games'
+import { funGames } from '../data/games'
 import GameGrid from '../components/GameGrid'
+import Breadcrumbs from '../components/Breadcrumbs'
+import SEOHead from '../seo/SEOHead'
+import { SITE_URL } from '../seo/config'
 
+const MotionLink = motion(Link)
+
+/** The 🎮 "משחקים בשביל הכיף" page - same /games URL the site has always
+    used, now filtered to `section === 'fun'` games specifically instead of
+    everything that happened to live in the FUN_GAMES array (which, after
+    the math/logic learning games were added there for routing reasons,
+    stopped being purely "fun" games). */
 export default function GamesHub() {
   const { tr } = useI18n()
-  const navigate = useNavigate()
+  const games = funGames()
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'משחקים בשביל הכיף',
+    description: 'משחקי בידור וכיף לילדים ולכל המשפחה: זיכרון, קליעה למטרה, בלונים, מבוך, מרוץ לחלל, 2048 ועולם התלת-ממד GTN.',
+    url: `${SITE_URL}/games`,
+    inLanguage: 'he',
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 pb-24">
-      <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">{tr('fun_games_title')}</h1>
-      <p className="mb-8 text-center text-ink/50">{tr('home_hero_sub')}</p>
+      <SEOHead
+        title="משחקים בשביל הכיף | נבון משחקים"
+        description="משחקי כיף ובידור לילדים ולכל המשפחה, בחינם וישירות בדפדפן: זיכרון, קליעה למטרה, בלונים, מבוך, מרוץ לחלל, 2048, ועולם התלת-ממד הפתוח GTN."
+        path="/games"
+        jsonLd={jsonLd}
+      />
+      <Breadcrumbs items={[{ label: 'דף הבית', href: '/' }, { label: 'משחקים בשביל הכיף' }]} />
 
-      <button
-        onClick={() => navigate('/games/gtn')}
-        className="group relative mb-8 w-full overflow-hidden rounded-blob bg-gradient-to-br from-ink via-grape-600 to-candy-600 p-6 text-white shadow-pop card-outline btn-pressable sm:p-8"
+      <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">🎮 משחקים בשביל הכיף</h1>
+      <p className="mb-8 text-center text-ink/50">כאן משחקים, נהנים ומאתגרים את עצמנו</p>
+
+      <MotionLink
+        to="/games/gtn"
+        whileHover={{ y: -2 }}
+        whileTap={{ scale: 0.99 }}
+        className="group relative mb-8 block w-full overflow-hidden rounded-blob bg-gradient-to-br from-ink via-grape-600 to-candy-600 p-6 text-white shadow-pop card-outline btn-pressable sm:p-8"
       >
         <span className="absolute -top-2 -right-2 rotate-6 rounded-full bg-sunny-400 px-2.5 py-1 text-[11px] font-extrabold text-ink shadow-card font-fun">
           ✨ {tr('badge_new')}
@@ -32,9 +63,17 @@ export default function GamesHub() {
           </div>
           <span className="shrink-0 rounded-full bg-white px-6 py-3 font-fun text-lg font-extrabold text-ink shadow-card">▶ PLAY</span>
         </div>
-      </button>
+      </MotionLink>
 
-      <GameGrid games={FUN_GAMES} />
+      <GameGrid games={games} />
+
+      <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-ink/50">
+        מחפשים משחקים לימודיים? בקרו ב-
+        <Link to="/games/learning" className="underline decoration-dotted hover:text-ink">
+          📚 משחקים בשביל ללמוד
+        </Link>
+        .
+      </p>
     </div>
   )
 }

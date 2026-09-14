@@ -6,6 +6,8 @@ export const STORY_HE_5: Story = {
   level: 'beginner',
   language: 'he',
   description: 'למאיה כואבת שן, והביקור אצל רופא השיניים מפתיע אותה לטובה.',
+  image: '/images/stories/story-he-dentist.webp',
+  imageAlt: 'ילדה יושבת בכיסא במרפאת שיניים ידידותית – מתוך הסיפור תור לרופא השיניים',
   lines: [
     'למאיה כאב שן כבר יומיים והיא לא ישנה טוב.',
     'אמא שלה קבעה תור דחוף אצל רופא השיניים.',

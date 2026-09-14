@@ -6,6 +6,8 @@ export const STORY_HE_10: Story = {
   level: 'intermediate',
   language: 'he',
   description: 'שירה ומר כהן מהמכולת השכונתית חולקים קשר חם ומיוחד.',
+  image: '/images/stories/story-he-grocery.webp',
+  imageAlt: 'בעל מכולת שכונתית מחייך לילדה ליד מדפי המוצרים – מתוך הסיפור המכולת של השכונה',
   lines: [
     'בפינת הרחוב שלנו יש מכולת קטנה ששייכת למר כהן.',
     'שירה הולכת לשם כמעט כל יום אחרי הלימודים.',

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Personal/account pages - not useful search results, and not the kind of
+# content this site wants indexed.
+Disallow: /profile
+Disallow: /achievements
+Disallow: /parents
+Disallow: /settings
+
+Sitemap: https://navon-games.co.il/sitemap.xml

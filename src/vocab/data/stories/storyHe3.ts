@@ -6,6 +6,8 @@ export const STORY_HE_3: Story = {
   level: 'beginner',
   language: 'he',
   description: 'דנה מאבדת את המפתחות שלה ויוצאת למסע קטן כדי למצוא אותם.',
+  image: '/images/stories/story-he-keys.webp',
+  imageAlt: 'אישה מחפשת מפתחות אבודים ליד בית קפה קטן – מתוך הסיפור המפתחות האבודים',
   lines: [
     'דנה חזרה הביתה מהעבודה בשעה מאוחרת.',
     'היא חיפשה את המפתחות בתיק אך לא מצאה אותם.',

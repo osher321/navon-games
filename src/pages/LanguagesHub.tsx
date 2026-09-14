@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
-import type { LevelId } from '../types'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import type { LangCode, LevelId } from '../types'
 import { LEVELS } from '../types'
 import { useI18n } from '../i18n/LanguageContext'
 import { useProgress } from '../hooks/useProgress'
@@ -8,13 +9,64 @@ import LanguageSelector from '../components/LanguageSelector'
 import LevelSelector from '../components/LevelSelector'
 import GameGrid from '../components/GameGrid'
 import ProgressBar from '../components/ProgressBar'
+import Breadcrumbs from '../components/Breadcrumbs'
+import SEOHead from '../seo/SEOHead'
+import { SITE_URL } from '../seo/config'
+import { SLUG_TO_LANG, LANG_TO_SLUG } from '../seo/languageSlugs'
+
+const HREF_FOR_STORY_GAME: Record<string, string> = {
+  stories_academy_he: '/learn-languages/stories/hebrew',
+  stories_academy: '/learn-languages/stories/english',
+  stories_academy_es: '/learn-languages/stories/spanish',
+}
+
+const PAGE_COPY: Record<'general' | 'english' | 'spanish' | 'hebrew', { title: string; description: string; intro: string; breadcrumbLabel: string }> = {
+  general: {
+    title: 'לומדים שפות במשחק - עברית, אנגלית וספרדית | נבון משחקים',
+    description: 'למדו שפות בצורה מהנה: משחקי אנגלית וספרדית, אוצר מילים לפי רמות וסיפורים אינטראקטיביים - מתאים לילדים ולכל המשפחה.',
+    intro: 'האזור "לומדים שפות" מאפשר ללמוד שפות חדשות באמצעות משחקים, תרגול אוצר מילים וסיפורים אינטראקטיביים. בחרו שפה כדי להתחיל לתרגל.',
+    breadcrumbLabel: 'לומדים שפות',
+  },
+  english: {
+    title: 'לימוד אנגלית לילדים - משחקים ואוצר מילים | נבון משחקים',
+    description: 'לימוד אנגלית לילדים בצורה מהנה: משחקי אנגלית, תרגול אוצר מילים באנגלית לפי רמות וסיפורים קצרים באנגלית עם הגייה.',
+    intro:
+      'אזור האנגלית כולל משחקי אנגלית מגוונים, אקדמיית אוצר מילים באנגלית עם 6 רמות לימוד, וסיפורים באנגלית שבהם אפשר ללחוץ על כל מילה כדי לשמוע הגייה וללמוד תרגום. דרך נעימה לתרגל אנגלית ולהרחיב את אוצר המילים.',
+    breadcrumbLabel: 'אנגלית',
+  },
+  spanish: {
+    title: 'לימוד ספרדית למתחילים - משחקים ואוצר מילים | נבון משחקים',
+    description: 'לימוד ספרדית למתחילים בצורה מהנה: משחקי ספרדית, תרגול אוצר מילים בספרדית וסיפורים קצרים בספרדית עם הגייה.',
+    intro:
+      'אזור הספרדית כולל משחקי ספרדית לתרגול מילים ומשפטים, וסיפורים בספרדית שבהם אפשר ללחוץ על כל מילה כדי לשמוע הגייה וללמוד את התרגום לעברית. מצוין למתחילים שרוצים ללמוד ספרדית בצורה כיפית.',
+    breadcrumbLabel: 'ספרדית',
+  },
+  hebrew: {
+    title: 'משחקי עברית ולימוד שפות | נבון משחקים',
+    description: 'משחקי עברית לתרגול שפה, לצד לימוד אנגלית וספרדית - הכל במקום אחד ובאמצעות משחק.',
+    intro: 'אזור העברית כולל משחקים לתרגול השפה העברית, וגם דרך נוחה לעבור ללימוד אנגלית או ספרדית.',
+    breadcrumbLabel: 'עברית',
+  },
+}
 
 export default function LanguagesHub() {
   const { tr } = useI18n()
+  const navigate = useNavigate()
+  const { langSlug } = useParams<{ langSlug?: string }>()
   const { progress, setSelectedLanguage } = useProgress()
   const lang = progress.selectedLanguage
-  const langProgress = progress.languages[lang]
 
+  // A language segment in the URL (/learn-languages/english) is the
+  // SEO-crawlable, shareable entry point for that language area - it drives
+  // the selected-language client state on load so the page content matches
+  // the URL, the same way the in-page selector drives it during a session.
+  const paramLang = langSlug ? SLUG_TO_LANG[langSlug] : undefined
+  useEffect(() => {
+    if (paramLang && paramLang !== lang) setSelectedLanguage(paramLang)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramLang])
+
+  const langProgress = progress.languages[lang]
   const [level, setLevel] = useState<LevelId>(() => langProgress.unlockedLevels[langProgress.unlockedLevels.length - 1])
 
   const currentLevelIdx = LEVELS.findIndex((l) => l.id === level)
@@ -24,17 +76,14 @@ export default function LanguagesHub() {
 
   const hrefFor = useMemo(
     () => (game: { id: string }) => {
-      // Both the vocabulary academy and the stories feature are standalone
-      // areas with their own internal navigation (not a LanguageGameProps
-      // component GameScreen can render), so they get their own route
-      // instead of the generic /play/:gameId one every other language game
-      // shares. Stories reuses that same route/page/progress store with a
-      // query param that opens straight to the story list - no separate
-      // page or duplicated Stories implementation.
+      // The vocabulary academy is a standalone area with its own internal
+      // navigation (not a LanguageGameProps component GameScreen can
+      // render), so it gets its own route instead of the generic
+      // /play/:gameId one every other language game shares. Stories live at
+      // their own dedicated, crawlable routes (see StoriesHubPage/
+      // StoriesListPage/StoryReaderPage) rather than inside this hub.
       if (game.id === 'vocab_academy') return '/games/vocab-academy'
-      if (game.id === 'stories_academy_he') return '/games/vocab-academy?view=stories&storyLang=he'
-      if (game.id === 'stories_academy') return '/games/vocab-academy?view=stories&storyLang=en'
-      if (game.id === 'stories_academy_es') return '/games/vocab-academy?view=stories&storyLang=es'
+      if (game.id in HREF_FOR_STORY_GAME) return HREF_FOR_STORY_GAME[game.id]
       return `/play/${game.id}?lang=${lang}&level=${level}`
     },
     [lang, level]
@@ -42,16 +91,46 @@ export default function LanguagesHub() {
 
   const availableGames = useMemo(() => languageGamesFor(lang), [lang])
 
-  const handleLangChange = (l: typeof lang) => {
-    setSelectedLanguage(l)
-    const lp = progress.languages[l]
-    setLevel(lp.unlockedLevels[lp.unlockedLevels.length - 1])
+  const handleLangChange = (l: LangCode) => {
+    // 'ar' can never reach here - the site-wide LanguageSelector default
+    // (['he','en','es']) is the only list rendered on this page, and Arabic
+    // was removed as a selectable/visible language everywhere - but the
+    // fallback keeps this exhaustive for LangCode's wider type.
+    const slug = LANG_TO_SLUG[l as 'he' | 'en' | 'es'] ?? 'hebrew'
+    navigate(`/learn-languages/${slug}`)
+  }
+
+  const copyKey = langSlug === 'english' ? 'english' : langSlug === 'spanish' ? 'spanish' : langSlug === 'hebrew' ? 'hebrew' : 'general'
+  const copy = PAGE_COPY[copyKey]
+  const path = langSlug ? `/learn-languages/${langSlug}` : '/learn-languages'
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: copy.title,
+    description: copy.description,
+    url: `${SITE_URL}${path}`,
+    inLanguage: 'he',
   }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 pb-24">
+      <SEOHead title={copy.title} description={copy.description} path={path} jsonLd={jsonLd} />
+      <Breadcrumbs
+        items={
+          langSlug
+            ? [
+                { label: 'דף הבית', href: '/' },
+                { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
+                { label: 'לומדים שפות', href: '/learn-languages' },
+                { label: copy.breadcrumbLabel },
+              ]
+            : [{ label: 'דף הבית', href: '/' }, { label: 'משחקים בשביל ללמוד', href: '/games/learning' }, { label: 'לומדים שפות' }]
+        }
+      />
+
       <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">{tr('language_games_title')}</h1>
-      <p className="mb-6 text-center text-ink/50">{tr('choose_language')}</p>
+      <p className="mx-auto mb-6 max-w-xl text-center text-sm text-ink/60">{copy.intro}</p>
 
       <LanguageSelector value={lang} onChange={handleLangChange} />
 

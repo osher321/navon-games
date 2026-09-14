@@ -4,6 +4,8 @@ import { useI18n } from '../i18n/LanguageContext'
 import MainMenu from './ui/MainMenu'
 import InfoPanel from './ui/InfoPanel'
 import GameCanvas from './game/GameCanvas'
+import Breadcrumbs from '../components/Breadcrumbs'
+import SEOHead from '../seo/SEOHead'
 
 type Phase = 'menu' | 'playing' | 'missions' | 'howto' | 'settings'
 
@@ -14,6 +16,12 @@ export default function GTNPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 pb-24">
+      <SEOHead
+        title="GTN - Grand Theft Neighborhood | משחק עולם פתוח בדפדפן | נבון משחקים"
+        description="שחקו ב-GTN - משחק עולם פתוח בתלת-ממד בדפדפן: נהיגה, טיסה, שיט והליכה בעיר פתוחה, בחינם וללא הורדה."
+        path="/games/gtn"
+      />
+      {phase === 'menu' && <Breadcrumbs items={[{ label: 'דף הבית', href: '/' }, { label: 'משחקים', href: '/games' }, { label: 'GTN' }]} />}
       {phase === 'menu' && (
         <MainMenu
           onPlay={() => setPhase('playing')}

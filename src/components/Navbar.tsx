@@ -5,7 +5,7 @@ import { useProgress } from '../hooks/useProgress'
 const NAV_ITEMS = [
   { to: '/', key: 'nav_home', icon: '🏠' },
   { to: '/games', key: 'nav_games', icon: '🎮' },
-  { to: '/languages', key: 'nav_languages', icon: '📚' },
+  { to: '/games/learning', key: 'nav_learning', icon: '📚' },
   { to: '/profile', key: 'nav_profile', icon: '👦' },
   { to: '/parents', key: 'nav_parents', icon: '👨‍👩‍👧' },
 ]

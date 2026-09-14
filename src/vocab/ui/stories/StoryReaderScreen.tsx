@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Story, StoryLanguage } from '../../data/stories/types'
 import { resolveWordTranslation, tokenizeLine } from '../../data/stories'
 import { getStoryLevelDef } from '../../data/stories/types'
@@ -17,15 +18,24 @@ const NO_MEANING_LABEL: Record<StoryLanguage, string> = {
   he: 'אין הסבר זמין למילה זו',
 }
 
+export interface OtherStoryLink {
+  id: string
+  title: string
+  href: string
+}
+
 interface StoryReaderScreenProps {
   story: Story
   isCompleted: boolean
-  onBack: () => void
+  backHref: string
   onMarkRead: (storyId: string) => void
   onMarkCompleted: (storyId: string) => void
+  /** A few sibling stories in the same language, linked at the bottom - real
+      internal links for both readers and search-engine crawling. */
+  otherStories?: OtherStoryLink[]
 }
 
-export default function StoryReaderScreen({ story, isCompleted, onBack, onMarkRead, onMarkCompleted }: StoryReaderScreenProps) {
+export default function StoryReaderScreen({ story, isCompleted, backHref, onMarkRead, onMarkCompleted, otherStories = [] }: StoryReaderScreenProps) {
   const [activeToken, setActiveToken] = useState<string | null>(null)
   const levelDef = getStoryLevelDef(story.level)
 
@@ -46,15 +56,15 @@ export default function StoryReaderScreen({ story, isCompleted, onBack, onMarkRe
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-5 flex items-center justify-between gap-2">
-        <button
-          onClick={onBack}
+        <Link
+          to={backHref}
           aria-label="חזרה לרשימת הסיפורים"
           className="shrink-0 rounded-full bg-white px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card card-outline btn-pressable"
         >
           ⬅ חזרה
-        </button>
+        </Link>
         <div className="text-center">
-          <p className="font-fun text-sm font-extrabold text-ink">📖 {story.title}</p>
+          <h1 className="font-fun text-sm font-extrabold text-ink">📖 {story.title}</h1>
           <p className="text-xs font-bold text-ink/50">
             {levelDef.icon} {levelDef.labelHe}
           </p>
@@ -108,6 +118,21 @@ export default function StoryReaderScreen({ story, isCompleted, onBack, onMarkRe
           </button>
         )}
       </div>
+
+      {otherStories.length > 0 && (
+        <div className="mt-8 rounded-xl2 bg-white/70 p-4 shadow-card card-outline">
+          <p className="mb-2 text-center text-xs font-bold text-ink/50">סיפורים נוספים שכדאי לקרוא</p>
+          <ul className="flex flex-wrap justify-center gap-2">
+            {otherStories.map((s) => (
+              <li key={s.id}>
+                <Link to={s.href} className="inline-block rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 hover:bg-sky-100">
+                  📖 {s.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {activeWord && (
         <WordInfoCard word={activeWord.text} translation={activeWord.translation} language={story.language} onClose={() => setActiveToken(null)} />

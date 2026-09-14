@@ -6,6 +6,8 @@ export const STORY_ES_9: Story = {
   level: 'elementary',
   language: 'es',
   description: 'רוברטו מתגבר על הביישנות שלו ולומד לרקוד סלסה.',
+  image: '/images/stories/story-es-salsa.webp',
+  imageAlt: 'זוג רוקד סלסה באולם ריקודים מואר – מתוך הסיפור Aprendiendo a Bailar Salsa',
   lines: [
     'Roberto siempre quiso aprender a bailar salsa.',
     'Un día, se inscribió en una academia de baile.',

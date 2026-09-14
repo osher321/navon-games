@@ -6,6 +6,8 @@ export const STORY_4: Story = {
   level: 'beginner',
   language: 'en',
   description: 'בן שוכח את הטלפון שלו ברכבת ומגלה שיש עוד אנשים טובים בעולם.',
+  image: '/images/stories/story-lost-phone.webp',
+  imageAlt: 'טלפון נייד שנשכח על מושב רכבת ריק – מתוך הסיפור The Lost Phone',
   lines: [
     'Ben left his phone on the train.',
     "He didn't notice until he reached home.",

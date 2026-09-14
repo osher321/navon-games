@@ -6,6 +6,8 @@ export const STORY_6: Story = {
   level: 'beginner',
   language: 'en',
   description: 'בית קפה קטן שהופך ללב השכונה כולה.',
+  image: '/images/stories/story-small-cafe.webp',
+  imageAlt: 'בית קפה קטן וחמים בפינת רחוב עם שני אנשים – מתוך הסיפור The Small Cafe',
   lines: [
     'There was a small cafe on the corner street.',
     'Every morning, people came for coffee and bread.',

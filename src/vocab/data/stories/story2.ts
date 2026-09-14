@@ -6,6 +6,8 @@ export const STORY_2: Story = {
   level: 'elementary',
   language: 'en',
   description: 'דיוויד מתחיל יום ראשון בעבודה חדשה ומתמודד עם ההתרגשות.',
+  image: '/images/stories/story-new-job.webp',
+  imageAlt: 'צעיר עם מזוודה עומד מול משרד ביום העבודה הראשון שלו – מתוך הסיפור The New Job',
   lines: [
     'David started his new job on Monday.',
     'He was nervous but also excited.',

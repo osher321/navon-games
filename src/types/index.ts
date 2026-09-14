@@ -31,9 +31,17 @@ export interface SentenceItem {
 
 export type GameCategory = 'fun' | 'language'
 
+/** Which of the site's two main areas (🎮 בשביל הכיף / 📚 בשביל ללמוד) this game belongs to - the single source of truth the two category pages filter by, instead of hand-maintained duplicate lists. */
+export type GameSection = 'fun' | 'learning'
+
+/** For `section: 'learning'` games only - which learning sub-area groups it on the 📚 hub. Language-learning games don't need this: they're already organized by the existing /learn-languages hub, not by this field. */
+export type LearningSubcategory = 'math' | 'logic' | 'language'
+
 export interface GameDef {
   id: string
   category: GameCategory
+  section: GameSection
+  learningSubcategory?: LearningSubcategory
   icon: string
   color: string
   nameKey: string

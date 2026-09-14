@@ -6,6 +6,8 @@ export const STORY_ES_5: Story = {
   level: 'beginner',
   language: 'es',
   description: 'לאורה ופדרו מגלים מסעדה חדשה וטעימה ליד הבית.',
+  image: '/images/stories/story-es-restaurante.webp',
+  imageAlt: 'זוג יושב לארוחה במסעדה חדשה וחמימה – מתוך הסיפור Un Restaurante Nuevo',
   lines: [
     'Laura y Pedro encontraron un restaurante nuevo cerca de casa.',
     'El lugar tenía mesas pequeñas y luces suaves.',

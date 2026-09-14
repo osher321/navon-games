@@ -6,6 +6,8 @@ export const STORY_8: Story = {
   level: 'intermediate',
   language: 'en',
   description: 'אמה מתיידדת עם קלרה, השכנה החדשה שעברה מארץ אחרת.',
+  image: '/images/stories/story-new-neighbor.webp',
+  imageAlt: 'שתי שכנות מתיידדות מול בתים סמוכים עם קופסאות הובלה – מתוך הסיפור The New Neighbor',
   lines: [
     'A new family moved into the house next door.',
     'Emma noticed them carrying boxes all afternoon.',

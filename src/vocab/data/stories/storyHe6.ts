@@ -6,6 +6,8 @@ export const STORY_HE_6: Story = {
   level: 'elementary',
   language: 'he',
   description: 'תומר וקבוצתו נלחמים על ניצחון בתחרות כדורסל שכונתית.',
+  image: '/images/stories/story-he-basketball.webp',
+  imageAlt: 'ילד משחק כדורסל מול סל במגרש שכונתי – מתוך הסיפור משחק כדורסל בשכונה',
   lines: [
     'כל יום שישי הילדים בשכונה משחקים כדורסל במגרש הציבורי.',
     'תומר הוא הכי גבוה בקבוצה שלו והוא אוהב לזרוק לסל.',

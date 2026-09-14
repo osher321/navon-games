@@ -6,6 +6,8 @@ export const STORY_5: Story = {
   level: 'elementary',
   language: 'en',
   description: 'החברים של ליסה מתכננים לה מסיבת יום הולדת מפתיעה.',
+  image: '/images/stories/story-surprise-birthday.webp',
+  imageAlt: 'עוגת יום הולדת ובלונים צבעוניים במסיבת הפתעה – מתוך הסיפור A Surprise Birthday',
   lines: [
     "It was Lisa's thirtieth birthday.",
     'Her friends planned a surprise party for her.',

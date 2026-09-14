@@ -6,6 +6,8 @@ export const STORY_3: Story = {
   level: 'intermediate',
   language: 'en',
   description: 'אנה מגשימה חלום ישן ויוצאת לטיול בלונדון.',
+  image: '/images/stories/story-london-trip.webp',
+  imageAlt: 'תיירת עם מזוודה מול מגדל שעון בעיר גדולה – מתוך הסיפור A Trip to London',
   lines: [
     'Anna had always dreamed of visiting London.',
     'Finally, she booked a flight for the summer.',
