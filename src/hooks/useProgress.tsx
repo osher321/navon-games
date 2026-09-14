@@ -122,8 +122,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setProgress((prev) => ({ ...prev, totalXP: prev.totalXP + amount, stars: prev.stars + Math.floor(amount / 10) }))
   }, [])
 
+  // Deliberately does NOT touch interfaceLanguage - the site's UI language
+  // and the language the learner is studying are two independent concepts
+  // (a Hebrew-speaking learner studying English still wants Hebrew menus,
+  // buttons, and instructions). See i18n/LanguageContext.tsx, which pins
+  // the interface to Hebrew regardless of this value.
   const setSelectedLanguage = useCallback((lang: LangCode) => {
-    setProgress((prev) => ({ ...prev, selectedLanguage: lang, interfaceLanguage: lang }))
+    setProgress((prev) => ({ ...prev, selectedLanguage: lang }))
   }, [])
 
   const toggleSound = useCallback(() => {

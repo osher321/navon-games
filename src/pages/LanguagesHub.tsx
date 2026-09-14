@@ -3,7 +3,7 @@ import type { LevelId } from '../types'
 import { LEVELS } from '../types'
 import { useI18n } from '../i18n/LanguageContext'
 import { useProgress } from '../hooks/useProgress'
-import { languageGamesFor } from '../data/games'
+import { languageGamesFor, STORY_GAMES } from '../data/games'
 import LanguageSelector from '../components/LanguageSelector'
 import LevelSelector from '../components/LevelSelector'
 import GameGrid from '../components/GameGrid'
@@ -23,7 +23,20 @@ export default function LanguagesHub() {
   const nextReq = nextLevel ? nextLevel.xpRequired : currentReq + 1
 
   const hrefFor = useMemo(
-    () => (game: { id: string }) => `/play/${game.id}?lang=${lang}&level=${level}`,
+    () => (game: { id: string }) => {
+      // Both the vocabulary academy and the stories feature are standalone
+      // areas with their own internal navigation (not a LanguageGameProps
+      // component GameScreen can render), so they get their own route
+      // instead of the generic /play/:gameId one every other language game
+      // shares. Stories reuses that same route/page/progress store with a
+      // query param that opens straight to the story list - no separate
+      // page or duplicated Stories implementation.
+      if (game.id === 'vocab_academy') return '/games/vocab-academy'
+      if (game.id === 'stories_academy_he') return '/games/vocab-academy?view=stories&storyLang=he'
+      if (game.id === 'stories_academy') return '/games/vocab-academy?view=stories&storyLang=en'
+      if (game.id === 'stories_academy_es') return '/games/vocab-academy?view=stories&storyLang=es'
+      return `/play/${game.id}?lang=${lang}&level=${level}`
+    },
     [lang, level]
   )
 
@@ -54,6 +67,16 @@ export default function LanguagesHub() {
 
       <div className="mt-10">
         <GameGrid games={availableGames} hrefFor={hrefFor} />
+      </div>
+
+      {/* Stories (📖 סיפורים) is a sibling section of the language
+          selector/grid above, not one of its filtered entries - it always
+          shows all 3 language cards regardless of which language is
+          currently selected up top. */}
+      <div className="mt-10">
+        <h2 className="mb-1 text-center font-fun text-2xl font-extrabold text-grape-600">📖 סיפורים</h2>
+        <p className="mb-4 text-center text-ink/50">בחרו שפה כדי לקרוא סיפורים קצרים ואינטראקטיביים</p>
+        <GameGrid games={STORY_GAMES} hrefFor={hrefFor} />
       </div>
     </div>
   )

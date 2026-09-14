@@ -8,7 +8,10 @@ interface LanguageSelectorProps {
   languages?: LangCode[]
 }
 
-export default function LanguageSelector({ value, onChange, languages = ['he', 'en', 'ar', 'es'] }: LanguageSelectorProps) {
+// Arabic has been removed as a learnable/selectable language site-wide -
+// this one default drives every call site (Home's shortcut, the Languages
+// hub, and Settings), so removing it here removes it everywhere at once.
+export default function LanguageSelector({ value, onChange, languages = ['he', 'en', 'es'] }: LanguageSelectorProps) {
   return (
     <div className="flex flex-wrap justify-center gap-3">
       {languages.map((lang) => {
@@ -23,7 +26,8 @@ export default function LanguageSelector({ value, onChange, languages = ['he', '
             }`}
           >
             <FlagIcon lang={lang} size={36} />
-            <span className="text-sm">{meta.native}</span>
+            {/* Hebrew name ("אנגלית"/"ספרדית"), not the language's own native-script name - the interface is always Hebrew. */}
+            <span className="text-sm">{meta.label}</span>
           </button>
         )
       })}

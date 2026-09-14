@@ -4,9 +4,10 @@ import { useSound } from '../../hooks/useSound'
 import FeedbackBubble from '../../components/FeedbackBubble'
 import ProgressBar from '../../components/ProgressBar'
 import Ltr from '../../components/Ltr'
+import PronounceButton from '../ui/PronounceButton'
 
 /** Shown the Hebrew meaning (and can listen to the English word as a hint), the learner types the English spelling. Comparison is trim + case-insensitive. */
-export default function SpellingGame({ words, onAnswer, onFinish, speak, canSpeak }: VocabGameProps) {
+export default function SpellingGame({ words, onAnswer, onFinish }: VocabGameProps) {
   const { play } = useSound()
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -70,15 +71,9 @@ export default function SpellingGame({ words, onAnswer, onFinish, speak, canSpea
       <div className="mb-6 rounded-blob bg-white p-6 text-center shadow-pop card-outline">
         <p className="text-xs font-bold text-ink/40">משמעות:</p>
         <div className="mt-1 font-fun text-2xl font-extrabold text-ink">{current.he}</div>
-        {canSpeak && (
-          <button
-            onClick={() => speak(current.en)}
-            aria-label="השמע רמז - הקראת המילה באנגלית"
-            className="mt-3 rounded-full bg-sky-100 px-4 py-1.5 font-fun text-sm font-extrabold text-sky-700 btn-pressable"
-          >
-            🔊 שמעו רמז
-          </button>
-        )}
+        <div className="mt-3 flex justify-center">
+          <PronounceButton text={current.en} />
+        </div>
       </div>
 
       <form
@@ -113,10 +108,11 @@ export default function SpellingGame({ words, onAnswer, onFinish, speak, canSpea
       </form>
 
       {revealed && (
-        <div className="mt-4 rounded-xl2 bg-white/90 p-3 text-center shadow-card card-outline" role="status">
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-xl2 bg-white/90 p-3 text-center shadow-card card-outline" role="status">
           <p className="text-sm font-extrabold text-ink">
             האיות הנכון: <Ltr className="text-grass-600">{revealed}</Ltr>
           </p>
+          <PronounceButton text={revealed} size="sm" />
         </div>
       )}
     </div>

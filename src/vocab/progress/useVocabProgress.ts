@@ -141,6 +141,29 @@ export function useVocabProgress() {
     [progress]
   )
 
+  // Stories tracking is intentionally separate from XP/achievements/tests -
+  // reading a story never awards XP or unlocks anything, it's pure
+  // read/completed bookkeeping, so it can never interact with (or break)
+  // the existing progress economy.
+  const markStoryRead = useCallback(
+    (storyId: string) => {
+      if (progress.storiesRead.includes(storyId) && progress.lastStoryId === storyId) return
+      const storiesRead = progress.storiesRead.includes(storyId) ? progress.storiesRead : [...progress.storiesRead, storyId]
+      setProgress({ ...progress, storiesRead, lastStoryId: storyId })
+    },
+    [progress]
+  )
+
+  const markStoryCompleted = useCallback(
+    (storyId: string) => {
+      if (progress.storiesCompleted.includes(storyId)) return
+      const storiesCompleted = [...progress.storiesCompleted, storyId]
+      const storiesRead = progress.storiesRead.includes(storyId) ? progress.storiesRead : [...progress.storiesRead, storyId]
+      setProgress({ ...progress, storiesCompleted, storiesRead, lastStoryId: storyId })
+    },
+    [progress]
+  )
+
   const consumeAchievements = useCallback((): VocabAchievementDef[] => {
     if (pendingAchievements.length === 0) return []
     const list = pendingAchievements
@@ -152,5 +175,15 @@ export function useVocabProgress() {
     comboRef.current = 0
   }, [])
 
-  return { progress, recordAnswer, recordGameComplete, recordSpeedChallengeComplete, recordTestResult, consumeAchievements, resetCombo }
+  return {
+    progress,
+    recordAnswer,
+    recordGameComplete,
+    recordSpeedChallengeComplete,
+    recordTestResult,
+    consumeAchievements,
+    resetCombo,
+    markStoryRead,
+    markStoryCompleted,
+  }
 }

@@ -13,6 +13,7 @@ export interface VocabGameProps {
   /** `mode` defaults to 'normal' XP; Speed Challenge passes 'speed' for its higher per-answer rate. */
   onAnswer: (word: VocabWord, correct: boolean, mode?: 'normal' | 'speed') => void
   onFinish: (summary: VocabGameSummary) => void
-  speak: (text: string) => void
+  /** `onDone` fires when playback ends (or fails) - drives a 🔊→▶️ button's "now playing" state back to normal. */
+  speak: (text: string, onDone?: () => void) => void
   canSpeak: boolean
 }

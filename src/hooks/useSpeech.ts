@@ -51,8 +51,11 @@ export function useSpeech() {
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
   const speak = useCallback(
-    (text: string, lang: LangCode) => {
-      if (!supported) return
+    (text: string, lang: LangCode, onDone?: () => void) => {
+      if (!supported) {
+        onDone?.()
+        return
+      }
       const bcp47 = VOICE_LOCALE[lang]
       window.speechSynthesis.cancel()
       loadVoices()
@@ -63,10 +66,18 @@ export function useSpeech() {
           if (voice) utter.voice = voice
           utter.rate = 0.85
           utter.pitch = 1.05
+          // `onDone` drives a UI's "now playing" state back to normal - fires
+          // on natural end AND on error, so a callback is never left hanging
+          // if the browser can't actually produce audio for this utterance.
+          if (onDone) {
+            utter.onend = onDone
+            utter.onerror = onDone
+          }
           window.speechSynthesis.speak(utter)
         })
         .catch(() => {
           // speech synthesis not available - fail silently
+          onDone?.()
         })
     },
     [supported]

@@ -6,9 +6,10 @@ import { useSound } from '../../hooks/useSound'
 import FeedbackBubble from '../../components/FeedbackBubble'
 import ProgressBar from '../../components/ProgressBar'
 import Ltr from '../../components/Ltr'
+import PronounceButton from '../ui/PronounceButton'
 
 /** English word on screen, pick the correct Hebrew meaning - the flagship "translate this word" exercise. */
-export default function MultipleChoiceGame({ words, onAnswer, onFinish, speak, canSpeak }: VocabGameProps) {
+export default function MultipleChoiceGame({ words, onAnswer, onFinish }: VocabGameProps) {
   const { play } = useSound()
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -75,15 +76,9 @@ export default function MultipleChoiceGame({ words, onAnswer, onFinish, speak, c
         <div className="font-fun text-3xl font-extrabold text-ink">
           <Ltr>{current.en}</Ltr>
         </div>
-        {canSpeak && (
-          <button
-            onClick={() => speak(current.en)}
-            aria-label="השמע את המילה"
-            className="mt-3 rounded-full bg-sky-100 px-4 py-1.5 font-fun text-sm font-extrabold text-sky-700 btn-pressable"
-          >
-            🔊 השמע
-          </button>
-        )}
+        <div className="mt-3 flex justify-center">
+          <PronounceButton text={current.en} />
+        </div>
         <p className="mt-2 text-xs font-bold text-ink/40">בחרו את התרגום הנכון</p>
       </div>
 

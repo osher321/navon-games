@@ -8,7 +8,8 @@ import type { LangCode } from '../types'
 import { getGameById } from '../data/games'
 import ProgressBar from '../components/ProgressBar'
 
-const LANGS: LangCode[] = ['he', 'en', 'ar', 'es']
+// Arabic removed from the language-learning system - never listed/rendered here even if old stored progress still has an 'ar' entry.
+const LANGS: LangCode[] = ['he', 'en', 'es']
 
 export default function Profile() {
   const { tr } = useI18n()
@@ -87,7 +88,7 @@ export default function Profile() {
                 <div key={l} className="rounded-xl2 bg-white p-4 shadow-card card-outline">
                   <div className="mb-2 flex items-center justify-between font-fun font-extrabold">
                     <span className="flex items-center gap-2">
-                      <FlagIcon lang={l} size={24} /> {LANG_META[l].native}
+                      <FlagIcon lang={l} size={24} /> {LANG_META[l].label}
                     </span>
                     <span className="text-xs text-ink/40">{tr(`level_${current.id}`)}</span>
                   </div>

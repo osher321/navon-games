@@ -10,7 +10,10 @@ import { useSpeech } from '../hooks/useSpeech'
 export function useVocabSpeech() {
   const { speak, supported, canSpeak } = useSpeech()
   return {
-    speak: (text: string) => speak(text, 'en'),
+    // `onDone` fires once the utterance ends (or errors/is unsupported) -
+    // this is what lets a 🔊 button switch back from its "playing" state
+    // without guessing at a fixed duration.
+    speak: (text: string, onDone?: () => void) => speak(text, 'en', onDone),
     canSpeak: supported && canSpeak('en'),
   }
 }

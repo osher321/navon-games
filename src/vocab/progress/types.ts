@@ -28,6 +28,11 @@ export interface VocabProgressState {
   perfectRounds: number
   /** Best number of correct answers in a single Speed Challenge run. */
   bestSpeedScore: number
+  /** Story ids opened at least once. */
+  storiesRead: string[]
+  /** Story ids explicitly marked as finished. */
+  storiesCompleted: string[]
+  lastStoryId: string | null
   createdAt: number
 }
 
@@ -45,6 +50,9 @@ export function createDefaultVocabProgress(): VocabProgressState {
     gamesCompleted: 0,
     perfectRounds: 0,
     bestSpeedScore: 0,
+    storiesRead: [],
+    storiesCompleted: [],
+    lastStoryId: null,
     createdAt: Date.now(),
   }
 }

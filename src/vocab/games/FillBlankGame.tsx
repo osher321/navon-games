@@ -6,6 +6,7 @@ import { useSound } from '../../hooks/useSound'
 import FeedbackBubble from '../../components/FeedbackBubble'
 import ProgressBar from '../../components/ProgressBar'
 import Ltr from '../../components/Ltr'
+import PronounceButton from '../ui/PronounceButton'
 
 /** Blanks the target word out of its own example sentence - the choices are other vocabulary words from this session, so it's testing "which word fits here" rather than grammar/conjugation. */
 function blankSentence(example: string, word: string): string {
@@ -83,22 +84,26 @@ export default function FillBlankGame({ words, onAnswer, onFinish }: VocabGamePr
         <p className="mt-2 text-xs font-bold text-ink/40">בחרו את המילה המתאימה</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {options.map((opt) => {
           const isThisCorrect = pickedId !== null && opt.id === current.id
           const isThisWrong = pickedId === opt.id && opt.id !== current.id
           return (
-            <motion.button
-              key={opt.id}
-              whileTap={{ scale: 0.96 }}
-              disabled={disabled}
-              onClick={() => choose(opt.id)}
-              className={`rounded-xl2 px-4 py-4 font-fun text-lg font-extrabold shadow-card card-outline btn-pressable disabled:opacity-90 ${
-                isThisCorrect ? 'bg-grass-400 text-white' : isThisWrong ? 'bg-candy-400 text-white' : 'bg-white text-grape-600'
-              }`}
-            >
-              <Ltr>{opt.en}</Ltr>
-            </motion.button>
+            // Flex pair, not a single button - so the pronounce control next
+            // to each candidate word never nests inside the answer button.
+            <div key={opt.id} className="flex items-center gap-1.5">
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                disabled={disabled}
+                onClick={() => choose(opt.id)}
+                className={`flex-1 rounded-xl2 px-4 py-4 font-fun text-lg font-extrabold shadow-card card-outline btn-pressable disabled:opacity-90 ${
+                  isThisCorrect ? 'bg-grass-400 text-white' : isThisWrong ? 'bg-candy-400 text-white' : 'bg-white text-grape-600'
+                }`}
+              >
+                <Ltr>{opt.en}</Ltr>
+              </motion.button>
+              <PronounceButton text={opt.en} size="sm" />
+            </div>
           )
         })}
       </div>

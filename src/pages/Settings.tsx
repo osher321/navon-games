@@ -4,8 +4,8 @@ import { useProgress } from '../hooks/useProgress'
 import LanguageSelector from '../components/LanguageSelector'
 
 export default function Settings() {
-  const { tr, lang, setLang } = useI18n()
-  const { progress, toggleSound, resetProgress } = useProgress()
+  const { tr } = useI18n()
+  const { progress, setSelectedLanguage, toggleSound, resetProgress } = useProgress()
   const [confirming, setConfirming] = useState(false)
 
   return (
@@ -14,7 +14,8 @@ export default function Settings() {
 
       <section className="mb-8 rounded-xl2 bg-white p-5 shadow-card card-outline">
         <p className="mb-3 font-fun font-extrabold text-ink">{tr('nav_languages')}</p>
-        <LanguageSelector value={lang} onChange={setLang} />
+        {/* Which language to LEARN - independent of the (always-Hebrew) interface language, so this binds directly to selectedLanguage, same as Home and the Languages hub. */}
+        <LanguageSelector value={progress.selectedLanguage} onChange={setSelectedLanguage} />
       </section>
 
       <section className="mb-8 flex items-center justify-between rounded-xl2 bg-white p-5 shadow-card card-outline">

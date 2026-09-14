@@ -13,6 +13,7 @@ import BalloonPopGame from '../games/BalloonPopGame'
 import MazeGame from '../games/MazeGame'
 import SpaceRaceGame from '../games/SpaceRaceGame'
 import TargetHitGame from '../games/TargetHitGame'
+import MathGame from '../games/MathGame'
 import HebrewLettersMemoryGame from '../games/HebrewLettersMemoryGame'
 import WordImageMatchGame from '../games/WordImageMatchGame'
 import ListeningGame from '../games/ListeningGame'
@@ -113,6 +114,8 @@ export default function GameScreen() {
         return <SpaceRaceGame key={round} onFinish={handleFinish} />
       case 'target_hit':
         return <TargetHitGame key={round} onFinish={handleFinish} />
+      case 'math_addition_subtraction':
+        return <MathGame key={round} onFinish={handleFinish} />
       case 'hebrew_memory':
         return <HebrewLettersMemoryGame key={round} onFinish={handleFinish} />
       case 'word_image':

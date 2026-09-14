@@ -4,6 +4,7 @@ import type { VocabGameProps } from './types'
 import { pickDistractors, shuffle } from '../data/words'
 import { useSound } from '../../hooks/useSound'
 import Ltr from '../../components/Ltr'
+import PronounceButton from '../ui/PronounceButton'
 
 const DURATION_SEC = 60
 
@@ -91,6 +92,9 @@ export default function SpeedChallengeGame({ words, onAnswer, onFinish }: VocabG
       <div className="mb-6 rounded-blob bg-white p-6 text-center shadow-pop card-outline">
         <div className="font-fun text-3xl font-extrabold text-ink">
           <Ltr>{current.en}</Ltr>
+        </div>
+        <div className="mt-2 flex justify-center">
+          <PronounceButton text={current.en} size="sm" />
         </div>
       </div>
 

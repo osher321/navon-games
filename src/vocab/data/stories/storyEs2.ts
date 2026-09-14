@@ -1,0 +1,36 @@
+import type { Story } from './types'
+
+export const STORY_ES_2: Story = {
+  id: 'story-es-lluvia',
+  title: 'Un Día de Lluvia',
+  level: 'beginner',
+  language: 'es',
+  description: 'קרלוס נשאר בבית ביום גשום ונהנה מרגיעה פשוטה.',
+  lines: [
+    'Llovía mucho esa mañana en la ciudad.',
+    'Carlos decidió quedarse en casa todo el día.',
+    'Preparó una sopa caliente en la cocina.',
+    'Después, leyó un libro cerca de la ventana.',
+    'El sonido de la lluvia era tranquilo y suave.',
+    'Su gato dormía sobre el sofá gris.',
+    'Carlos escuchó música mientras tomaba té.',
+    'Por la tarde, escribió una carta a su hermana.',
+    'La lluvia continuó hasta la noche.',
+    'Carlos encendió una vela y miró por la ventana.',
+    'Fue un día tranquilo, simple y agradable.',
+  ],
+  vocabulary: [
+    { word: 'llovía', translation: 'ירד גשם' },
+    { word: 'carlos', translation: 'קרלוס (שם פרטי)' },
+    { word: 'quedarse', translation: 'להישאר' },
+    { word: 'sopa', translation: 'מרק' },
+    { word: 'sonido', translation: 'צליל' },
+    { word: 'gato', translation: 'חתול' },
+    { word: 'sofá', translation: 'ספה' },
+    { word: 'gris', translation: 'אפור' },
+    { word: 'carta', translation: 'מכתב' },
+    { word: 'vela', translation: 'נר' },
+    { word: 'simple', translation: 'פשוט' },
+    { word: 'agradable', translation: 'נעים' },
+  ],
+}

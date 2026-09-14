@@ -1,0 +1,37 @@
+import type { Story } from './types'
+
+export const STORY_ES_5: Story = {
+  id: 'story-es-restaurante',
+  title: 'Un Restaurante Nuevo',
+  level: 'beginner',
+  language: 'es',
+  description: 'לאורה ופדרו מגלים מסעדה חדשה וטעימה ליד הבית.',
+  lines: [
+    'Laura y Pedro encontraron un restaurante nuevo cerca de casa.',
+    'El lugar tenía mesas pequeñas y luces suaves.',
+    'Un camarero amable les mostró el menú.',
+    'Laura pidió una paella con mariscos frescos.',
+    'Pedro decidió probar una sopa de tomate.',
+    'La comida llegó rápido y olía muy bien.',
+    'Todo tenía un sabor delicioso y especial.',
+    'También probaron un postre de chocolate suave.',
+    'El camarero les recomendó un café tradicional.',
+    'Laura y Pedro hablaron y rieron toda la cena.',
+    'Pagaron la cuenta y dejaron una buena propina.',
+    'Decidieron volver a ese restaurante pronto.',
+  ],
+  vocabulary: [
+    { word: 'laura', translation: 'לאורה (שם פרטי)' },
+    { word: 'pedro', translation: 'פדרו (שם פרטי)' },
+    { word: 'camarero', translation: 'מלצר' },
+    { word: 'menú', translation: 'תפריט' },
+    { word: 'paella', translation: 'פאייה (מנת אורז ספרדית)' },
+    { word: 'mariscos', translation: 'פירות ים' },
+    { word: 'tomate', translation: 'עגבנייה' },
+    { word: 'sabor', translation: 'טעם' },
+    { word: 'postre', translation: 'קינוח' },
+    { word: 'cena', translation: 'ארוחת ערב' },
+    { word: 'cuenta', translation: 'חשבון' },
+    { word: 'propina', translation: 'טיפ' },
+  ],
+}
