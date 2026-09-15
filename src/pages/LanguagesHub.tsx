@@ -138,31 +138,38 @@ export default function LanguagesHub() {
       <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">{tr('language_games_title')}</h1>
       <p className="mx-auto mb-6 max-w-xl text-center text-sm text-ink/60">{tr(ui.introKey)}</p>
 
-      {/* Stories (📖 סיפורים) is a sibling section of the language
-          selector/grid below, not one of its filtered entries - it always
-          shows all 3 language cards regardless of which language is
-          currently selected further down. */}
-      <div>
+      {/* Stories (📖 סיפורים) is a sibling section of the language games
+          section below, not one of its filtered entries - it always shows
+          all 3 language cards regardless of which language is currently
+          selected further down. Each major section gets its own bounded
+          card (background/shadow/padding) so the boundary between "stories"
+          and "games" reads clearly instead of the two areas running
+          together. */}
+      <section className="mb-10 rounded-xl2 bg-white/70 p-5 shadow-card card-outline sm:p-6 sm:mb-12">
         <h2 className="mb-1 text-center font-fun text-2xl font-extrabold text-grape-600">📖 {tr('cat_stories')}</h2>
-        <p className="mb-4 text-center text-ink/50">{tr('stories_choose_lang_hint')}</p>
+        <p className="mb-5 text-center text-ink/50">{tr('stories_choose_lang_hint')}</p>
         <GameGrid games={STORY_GAMES} hrefFor={hrefFor} />
-      </div>
+      </section>
 
-      <LanguageSelector value={lang} onChange={handleLangChange} />
+      <section className="rounded-xl2 bg-white/70 p-5 shadow-card card-outline sm:p-6">
+        <h2 className="mb-5 text-center font-fun text-2xl font-extrabold text-grape-600">🎮 {tr('languages_games_section_title')}</h2>
 
-      <p className="mb-3 mt-8 text-center text-ink/50">{tr('choose_level')}</p>
-      <LevelSelector value={level} onChange={setLevel} unlockedLevels={langProgress.unlockedLevels} />
+        <LanguageSelector value={lang} onChange={handleLangChange} />
 
-      <div className="mx-auto mt-6 max-w-sm">
-        <ProgressBar value={langProgress.xp - currentReq} max={Math.max(1, nextReq - currentReq)} colorFrom="from-sunny-400" colorTo="to-candy-400" showLabel />
-        <p className="mt-1 text-center text-xs font-bold text-ink/40">
-          {langProgress.xp} {tr('xp')} {nextLevel ? `· ${nextReq - langProgress.xp > 0 ? nextReq - langProgress.xp : 0} → ${tr(`level_${nextLevel.id}`)}` : ''}
-        </p>
-      </div>
+        <p className="mb-3 mt-8 text-center text-ink/50">{tr('choose_level')}</p>
+        <LevelSelector value={level} onChange={setLevel} unlockedLevels={langProgress.unlockedLevels} />
 
-      <div className="mt-10">
-        <GameGrid games={availableGames} hrefFor={hrefFor} />
-      </div>
+        <div className="mx-auto mt-6 max-w-sm">
+          <ProgressBar value={langProgress.xp - currentReq} max={Math.max(1, nextReq - currentReq)} colorFrom="from-sunny-400" colorTo="to-candy-400" showLabel />
+          <p className="mt-1 text-center text-xs font-bold text-ink/40">
+            {langProgress.xp} {tr('xp')} {nextLevel ? `· ${nextReq - langProgress.xp > 0 ? nextReq - langProgress.xp : 0} → ${tr(`level_${nextLevel.id}`)}` : ''}
+          </p>
+        </div>
+
+        <div className="mt-8">
+          <GameGrid games={availableGames} hrefFor={hrefFor} />
+        </div>
+      </section>
     </div>
   )
 }

@@ -8,6 +8,8 @@ export const STORY_ES_7: Story = {
   description: 'מרטה מוצאת בספרייה השכונתית את המקום האהוב עליה ללמידה.',
   image: '/images/stories/story-es-biblioteca.webp',
   imageAlt: 'אישה יושבת וקוראת בין מדפי ספרים בספרייה שכונתית – מתוך הסיפור La Biblioteca del Barrio',
+  ageRange: ['9-12', '13-15'],
+  genres: ['adventure'],
   lines: [
     'Cada tarde, Marta iba a la biblioteca del barrio.',
     'El lugar era silencioso y muy acogedor.',

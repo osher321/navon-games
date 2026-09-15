@@ -8,6 +8,8 @@ export const STORY_9: Story = {
   description: 'מייק וחבריו יוצאים לטיול הרים שהופך לחוויה בלתי נשכחת.',
   image: '/images/stories/story-weekend-adventure.webp',
   imageAlt: 'קבוצת חברים יושבת ליד אוהלים בטיול הרים – מתוך הסיפור A Weekend Adventure',
+  ageRange: ['13-15', '16-18'],
+  genres: ['adventure', 'survival'],
   lines: [
     'Mike and his friends planned a weekend trip to the mountains.',
     'They packed their bags with tents and warm clothes.',

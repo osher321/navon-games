@@ -8,6 +8,12 @@ import { SITE_URL } from '../seo/config'
 import { SLUG_TO_LANG } from '../seo/languageSlugs'
 import { useI18n } from '../i18n/LanguageContext'
 
+const LANG_ORDER: { slug: string; nameKey: string }[] = [
+  { slug: 'hebrew', nameKey: 'game_stories_academy_he_name' },
+  { slug: 'english', nameKey: 'game_stories_academy_name' },
+  { slug: 'spanish', nameKey: 'game_stories_academy_es_name' },
+]
+
 // SEO title/description stay Hebrew-authored (this route is prerendered
 // once per language slug, not per interface-language) - h1/intro/breadcrumb
 // below react to the interface language via the *Key fields instead.
@@ -61,7 +67,7 @@ export default function StoriesListPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 pb-24">
+    <div className="mx-auto max-w-5xl px-4 py-6 pb-24">
       <SEOHead title={seo.title} description={seo.description} path={`/learn-languages/stories/${langSlug}`} jsonLd={jsonLd} />
       <Breadcrumbs
         items={[
@@ -82,6 +88,14 @@ export default function StoriesListPage() {
         completedIds={progress.storiesCompleted}
         getStoryHref={(storyId) => `/learn-languages/stories/${langSlug}/${storyId}`}
         backHref="/learn-languages/stories"
+        languageSwitcher={LANG_ORDER.map((l) => ({
+          slug: l.slug,
+          lang: SLUG_TO_LANG[l.slug],
+          nameKey: l.nameKey,
+          href: `/learn-languages/stories/${l.slug}`,
+          active: l.slug === langSlug,
+        }))}
+        gamesHref={`/learn-languages/${langSlug}`}
       />
     </div>
   )

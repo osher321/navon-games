@@ -326,3 +326,213 @@ export function shelfWithGoods(x, y, w) {
   for (let i = 0; i < count; i++) items += `<rect x="${x + i * 16}" y="${y - 14}" width="12" height="14" rx="2" fill="${colors[i % colors.length]}" />`
   return `<rect x="${x - 4}" y="${y}" width="${w + 8}" height="6" fill="#8a6a3f" /> ${items}`
 }
+
+// --- Additions for the 60-story library expansion (new settings: castles,
+// storms, space, time-travel, detective noir, etc.) - same flat-primitive
+// style as everything above, no external art.
+
+export function owl(x, y, scale = 1) {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <ellipse cx="0" cy="0" rx="22" ry="26" fill="#8a6a4f" />
+      <ellipse cx="-9" cy="-8" rx="9" ry="10" fill="#c9a876" />
+      <ellipse cx="9" cy="-8" rx="9" ry="10" fill="#c9a876" />
+      <circle cx="-9" cy="-8" r="4.5" fill="#1a1a2e" />
+      <circle cx="9" cy="-8" r="4.5" fill="#1a1a2e" />
+      <path d="M0,-2 L-5,6 L5,6 Z" fill="#E0A637" />
+      <path d="M-14,-24 L-8,-14 L-18,-16 Z" fill="#8a6a4f" />
+      <path d="M14,-24 L8,-14 L18,-16 Z" fill="#8a6a4f" />
+    </g>
+  `
+}
+
+export function castle(x, y, scale = 1, color = '#9AA0A6') {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <rect x="-70" y="-90" width="140" height="90" fill="${color}" />
+      <rect x="-70" y="-100" width="18" height="18" fill="${color}" />
+      <rect x="-40" y="-100" width="18" height="18" fill="${color}" />
+      <rect x="-8" y="-100" width="16" height="18" fill="${color}" />
+      <rect x="24" y="-100" width="18" height="18" fill="${color}" />
+      <rect x="52" y="-100" width="18" height="18" fill="${color}" />
+      <rect x="-92" y="-70" width="26" height="70" fill="${color}" />
+      <polygon points="-92,-70 -79,-96 -66,-70" fill="#7a828f" />
+      <rect x="66" y="-70" width="26" height="70" fill="${color}" />
+      <polygon points="66,-70 79,-96 92,-70" fill="#7a828f" />
+      <rect x="-14" y="-40" width="28" height="40" rx="14" fill="#3f2a1a" />
+      <rect x="-30" y="-60" width="14" height="18" fill="#bfe8ff" opacity="0.8" />
+      <rect x="16" y="-60" width="14" height="18" fill="#bfe8ff" opacity="0.8" />
+    </g>
+  `
+}
+
+export function fishingBoat(x, y, scale = 1, color = '#4FB0C9') {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <path d="M-60,0 Q0,26 60,0 L48,20 L-48,20 Z" fill="${color}" />
+      <rect x="-4" y="-70" width="8" height="70" fill="#7a5230" />
+      <path d="M4,-68 L46,-14 L4,-14 Z" fill="#FFFFFF" opacity="0.92" />
+      <path d="M-4,-50 L-34,-14 L-4,-14 Z" fill="#E8E8E8" opacity="0.9" />
+      <rect x="-14" y="-16" width="20" height="16" fill="#3f4650" />
+    </g>
+  `
+}
+
+export function rain(count = 20, color = '#bfe8ff') {
+  let s = ''
+  for (let i = 0; i < count; i++) {
+    const x = (i * 53) % 800
+    const y = (i * 37) % 400
+    s += `<line x1="${x}" y1="${y}" x2="${x - 14}" y2="${y + 26}" stroke="${color}" stroke-width="2.5" opacity="0.55" />`
+  }
+  return s
+}
+
+export function stormClouds(y = 90) {
+  return `
+    <ellipse cx="140" cy="${y}" rx="90" ry="34" fill="#5a6470" opacity="0.9" />
+    <ellipse cx="320" cy="${y - 20}" rx="110" ry="40" fill="#4a5460" opacity="0.9" />
+    <ellipse cx="560" cy="${y}" rx="100" ry="36" fill="#5a6470" opacity="0.9" />
+  `
+}
+
+export function rocket(x, y, scale = 1, color = '#D6392F') {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <path d="M0,-60 Q18,-20 18,20 L-18,20 Q-18,-20 0,-60 Z" fill="${color}" />
+      <circle cx="0" cy="-10" r="9" fill="#bfe8ff" />
+      <path d="M-18,10 L-34,32 L-18,26 Z" fill="#E0A637" />
+      <path d="M18,10 L34,32 L18,26 Z" fill="#E0A637" />
+      <path d="M-8,20 L0,40 L8,20 Z" fill="#FF9F4F" />
+    </g>
+  `
+}
+
+export function robotChar(x, y, scale = 1, color = '#4FB0C9') {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <rect x="-16" y="-34" width="32" height="30" rx="6" fill="${color}" />
+      <circle cx="-7" cy="-20" r="4" fill="#FFFFFF" />
+      <circle cx="7" cy="-20" r="4" fill="#FFFFFF" />
+      <rect x="-20" y="-4" width="40" height="26" rx="8" fill="${color}" />
+      <rect x="-16" y="22" width="10" height="16" fill="#3f4650" />
+      <rect x="6" y="22" width="10" height="16" fill="#3f4650" />
+      <line x1="0" y1="-34" x2="0" y2="-44" stroke="${color}" stroke-width="3" />
+      <circle cx="0" cy="-46" r="4" fill="#FFD23F" />
+    </g>
+  `
+}
+
+export function magnifyingGlass(x, y, scale = 1) {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <circle cx="0" cy="0" r="16" fill="none" stroke="#3f4650" stroke-width="4" />
+      <circle cx="0" cy="0" r="16" fill="#bfe8ff" opacity="0.35" />
+      <line x1="11" y1="11" x2="26" y2="26" stroke="#3f4650" stroke-width="5" stroke-linecap="round" />
+    </g>
+  `
+}
+
+export function portalSwirl(x, y, r = 60, color = '#7226F5') {
+  return `
+    <g transform="translate(${x},${y})">
+      <circle cx="0" cy="0" r="${r}" fill="${color}" opacity="0.25" />
+      <circle cx="0" cy="0" r="${r * 0.7}" fill="${color}" opacity="0.35" />
+      <circle cx="0" cy="0" r="${r * 0.4}" fill="#FFFFFF" opacity="0.5" />
+    </g>
+  `
+}
+
+export function oldClock(x, y, scale = 1) {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <circle cx="0" cy="0" r="30" fill="#F2E3C9" stroke="#8a6a3f" stroke-width="4" />
+      <line x1="0" y1="0" x2="0" y2="-18" stroke="#3f4650" stroke-width="3" stroke-linecap="round" />
+      <line x1="0" y1="0" x2="12" y2="6" stroke="#3f4650" stroke-width="3" stroke-linecap="round" />
+      <circle cx="0" cy="0" r="3" fill="#3f4650" />
+    </g>
+  `
+}
+
+export function campTent(x, y, scale = 1, color = '#D6552F') {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <path d="M-30,20 L0,-34 L30,20 Z" fill="${color}" />
+      <path d="M-8,20 L0,-6 L8,20 Z" fill="#3f2a1a" />
+      <line x1="-30" y1="20" x2="30" y2="20" stroke="#7a5230" stroke-width="4" />
+    </g>
+  `
+}
+
+export function kitten(x, y, color = '#E8C99A') {
+  return `
+    <g transform="translate(${x},${y})">
+      <ellipse cx="0" cy="0" rx="14" ry="10" fill="${color}" />
+      <circle cx="12" cy="-8" r="8" fill="${color}" />
+      <polygon points="6,-15 10,-24 14,-15" fill="${color}" />
+      <polygon points="14,-15 18,-24 20,-14" fill="${color}" />
+      <circle cx="9" cy="-9" r="1.5" fill="#1a1a2e" />
+      <circle cx="15" cy="-9" r="1.5" fill="#1a1a2e" />
+    </g>
+  `
+}
+
+export function glowingFlower(x, y, color = '#FF6FA0') {
+  return `
+    <g transform="translate(${x},${y})">
+      <circle cx="0" cy="0" r="14" fill="${color}" opacity="0.3" />
+      <circle cx="0" cy="-4" r="4" fill="${color}" />
+      <circle cx="-6" cy="2" r="4" fill="${color}" />
+      <circle cx="6" cy="2" r="4" fill="${color}" />
+      <circle cx="0" cy="0" r="3" fill="#FFD23F" />
+      <line x1="0" y1="10" x2="0" y2="30" stroke="#3FAE55" stroke-width="3" />
+    </g>
+  `
+}
+
+export function sword(x, y, scale = 1) {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <rect x="-3" y="-50" width="6" height="44" fill="#c9c9d4" />
+      <rect x="-14" y="-8" width="28" height="6" rx="2" fill="#8a6a3f" />
+      <rect x="-4" y="-6" width="8" height="16" fill="#5a3f1f" />
+    </g>
+  `
+}
+
+export function fogOverlay(opacity = 0.5) {
+  return `<rect x="0" y="0" width="800" height="500" fill="#c9d0d8" opacity="${opacity}" />`
+}
+
+export function envelope(x, y, scale = 1) {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <rect x="-24" y="-16" width="48" height="32" rx="2" fill="#F2E3C9" stroke="#8a6a3f" stroke-width="2" />
+      <path d="M-24,-16 L0,4 L24,-16" fill="none" stroke="#8a6a3f" stroke-width="2" />
+    </g>
+  `
+}
+
+export function trophy(x, y, scale = 1, color = '#E0A637') {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <path d="M-14,-24 Q-14,0 0,4 Q14,0 14,-24 Z" fill="${color}" />
+      <path d="M-14,-20 Q-26,-20 -22,-6 Q-18,4 -14,-2" fill="none" stroke="${color}" stroke-width="4" />
+      <path d="M14,-20 Q26,-20 22,-6 Q18,4 14,-2" fill="none" stroke="${color}" stroke-width="4" />
+      <rect x="-4" y="4" width="8" height="10" fill="${color}" />
+      <rect x="-14" y="14" width="28" height="6" rx="2" fill="#8a6a3f" />
+    </g>
+  `
+}
+
+export function newspaper(x, y, scale = 1) {
+  return `
+    <g transform="translate(${x},${y}) scale(${scale})">
+      <rect x="-22" y="-16" width="44" height="32" fill="#F2E3C9" />
+      <rect x="-16" y="-10" width="32" height="4" fill="#8a6a3f" />
+      <rect x="-16" y="-2" width="20" height="3" fill="#c9b48a" />
+      <rect x="-16" y="4" width="24" height="3" fill="#c9b48a" />
+      <rect x="-16" y="10" width="16" height="3" fill="#c9b48a" />
+    </g>
+  `
+}

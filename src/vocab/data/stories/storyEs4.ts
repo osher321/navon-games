@@ -8,6 +8,8 @@ export const STORY_ES_4: Story = {
   description: 'מיגל וחבריו חווים ערב מלא התרגשות באצטדיון הכדורגל.',
   image: '/images/stories/story-es-futbol.webp',
   imageAlt: 'שני שחקני כדורגל במגרש מואר בערב משחק – מתוך הסיפור El Partido de Fútbol',
+  ageRange: ['9-12', '13-15'],
+  genres: ['action'],
   lines: [
     'Miguel y sus amigos fueron al estadio el domingo.',
     'El equipo local jugaba contra un rival importante.',

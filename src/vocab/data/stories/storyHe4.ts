@@ -8,6 +8,8 @@ export const STORY_HE_4: Story = {
   description: 'יובל וכיתתו יוצאים לטיול השנתי לצפון הארץ.',
   image: '/images/stories/story-he-tiyul.webp',
   imageAlt: 'שני ילדים מטיילים ליד מפל מים בין הרי הגליל – מתוך הסיפור הטיול השנתי',
+  ageRange: ['9-12', '13-15'],
+  genres: ['adventure'],
   lines: [
     'כל שנה בית הספר מארגן טיול גדול לתלמידי כיתה ו׳.',
     'השנה הכיתה של יובל נסעה לצפון הארץ.',

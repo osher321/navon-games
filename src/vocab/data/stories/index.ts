@@ -32,6 +32,9 @@ import { STORY_HE_7 } from './storyHe7'
 import { STORY_HE_8 } from './storyHe8'
 import { STORY_HE_9 } from './storyHe9'
 import { STORY_HE_10 } from './storyHe10'
+import { EXTRA_STORIES_EN } from './storiesEnExtra'
+import { EXTRA_STORIES_ES } from './storiesEsExtra'
+import { EXTRA_STORIES_HE } from './storiesHeExtra'
 
 /** Adding an 11th story in an existing language - or a whole new language - is one more file, one more entry here, and (for a new language) one more common-words dictionary. Nothing else in the app needs to change. */
 export const ALL_STORIES: Story[] = [
@@ -65,6 +68,9 @@ export const ALL_STORIES: Story[] = [
   STORY_HE_8,
   STORY_HE_9,
   STORY_HE_10,
+  ...EXTRA_STORIES_EN,
+  ...EXTRA_STORIES_ES,
+  ...EXTRA_STORIES_HE,
 ]
 
 export function getStoryById(id: string): Story | undefined {

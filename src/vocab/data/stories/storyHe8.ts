@@ -8,6 +8,8 @@ export const STORY_HE_8: Story = {
   description: 'אלה מגלה עולם חדש של ספרים בספרייה העירונית.',
   image: '/images/stories/story-he-library.webp',
   imageAlt: 'ילדה יושבת וקוראת ספר בין מדפי ספרייה עירונית – מתוך הסיפור הספרייה העירונית',
+  ageRange: ['9-12', '13-15'],
+  genres: ['adventure'],
   lines: [
     'אלה אוהבת לקרוא ספרים כבר מגיל צעיר מאוד.',
     'פעם בשבוע היא הולכת לספרייה העירונית עם אמא.',

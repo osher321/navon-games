@@ -8,6 +8,8 @@ export const STORY_ES_10: Story = {
   description: 'ולנטינה עולה לאוטובוס הלא נכון ומגלה תושב אדיב שעוזר לה למצוא את דרכה.',
   image: '/images/stories/story-es-autobus.webp',
   imageAlt: 'נוסעת מבולבלת ליד תחנת אוטובוס ותושב מקומי עוזר לה – מתוך הסיפור El Autobús Equivocado',
+  ageRange: ['9-12', '13-15'],
+  genres: ['suspense'],
   lines: [
     'Valentina subió rápido a un autobús lleno de gente.',
     'No se dio cuenta de que era el autobús equivocado.',

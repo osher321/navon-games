@@ -299,6 +299,19 @@ const he: Dict = {
   common_instructions: 'הוראות',
   common_exit: 'יציאה',
   common_loading_game: 'טוען משחק…',
+
+  // --- Stories library page (language switcher / level filter / search) ---
+  stories_search_label: 'חיפוש סיפורים',
+  stories_search_placeholder: 'חפשו סיפור לפי שם...',
+  stories_filter_by_level: 'סינון לפי רמה',
+  stories_no_results: 'לא נמצאו סיפורים מתאימים',
+  story_min_read_suffix: 'דק׳ קריאה',
+  stories_try_games_cta: 'רוצים גם לתרגל עם משחקים?',
+  languages_games_section_title: 'משחקי שפה',
+  stories_age_prompt: 'איזה גיל מתאים לך?',
+  stories_recommended_for_age: 'סיפורים מומלצים לגיל שבחרת',
+  stories_filter_by_genre: 'סינון לפי ז׳אנר',
+  stories_filter_by_age: 'סינון לפי גיל',
 }
 
 const en: Dict = {
@@ -587,6 +600,19 @@ const en: Dict = {
   common_instructions: 'Instructions',
   common_exit: 'Exit',
   common_loading_game: 'Loading game…',
+
+  // --- Stories library page (language switcher / level filter / search) ---
+  stories_search_label: 'Search stories',
+  stories_search_placeholder: 'Search for a story by name...',
+  stories_filter_by_level: 'Filter by level',
+  stories_no_results: 'No matching stories found',
+  story_min_read_suffix: 'min read',
+  stories_try_games_cta: 'Want to practice with games too?',
+  languages_games_section_title: 'Language Games',
+  stories_age_prompt: 'What age fits you?',
+  stories_recommended_for_age: 'Stories recommended for your age',
+  stories_filter_by_genre: 'Filter by genre',
+  stories_filter_by_age: 'Filter by age',
 }
 
 const ar: Dict = {
@@ -875,6 +901,19 @@ const ar: Dict = {
   common_instructions: 'التعليمات',
   common_exit: 'خروج',
   common_loading_game: 'جاري تحميل اللعبة…',
+
+  // --- Stories library page (language switcher / level filter / search) ---
+  stories_search_label: 'البحث عن قصص',
+  stories_search_placeholder: 'ابحث عن قصة بالاسم...',
+  stories_filter_by_level: 'تصفية حسب المستوى',
+  stories_no_results: 'لم يتم العثور على قصص مطابقة',
+  story_min_read_suffix: 'دقيقة قراءة',
+  stories_try_games_cta: 'تريد أيضًا التدرب بالألعاب؟',
+  languages_games_section_title: 'ألعاب اللغة',
+  stories_age_prompt: 'ما هو العمر المناسب لك؟',
+  stories_recommended_for_age: 'قصص موصى بها لعمرك',
+  stories_filter_by_genre: 'تصفية حسب النوع',
+  stories_filter_by_age: 'تصفية حسب العمر',
 }
 
 const es: Dict = {
@@ -1163,6 +1202,19 @@ const es: Dict = {
   common_instructions: 'Instrucciones',
   common_exit: 'Salir',
   common_loading_game: 'Cargando juego…',
+
+  // --- Stories library page (language switcher / level filter / search) ---
+  stories_search_label: 'Buscar historias',
+  stories_search_placeholder: 'Busca una historia por nombre...',
+  stories_filter_by_level: 'Filtrar por nivel',
+  stories_no_results: 'No se encontraron historias',
+  story_min_read_suffix: 'min de lectura',
+  stories_try_games_cta: '¿Quieres practicar también con juegos?',
+  languages_games_section_title: 'Juegos de Idiomas',
+  stories_age_prompt: '¿Qué edad tienes?',
+  stories_recommended_for_age: 'Historias recomendadas para tu edad',
+  stories_filter_by_genre: 'Filtrar por género',
+  stories_filter_by_age: 'Filtrar por edad',
 }
 
 export const DICTS: Record<LangCode, Dict> = { he, en, ar, es }

@@ -8,6 +8,8 @@ export const STORY_ES_6: Story = {
   description: 'חאבייר פוגש חברה חדשה במהלך נסיעת רכבת ארוכה לברצלונה.',
   image: '/images/stories/story-es-tren.webp',
   imageAlt: 'שני נוסעים משוחחים בקרון רכבת בנסיעה ארוכה – מתוך הסיפור El Tren a Barcelona',
+  ageRange: ['16-18', '18+'],
+  genres: ['romance'],
   lines: [
     'Javier tomó el tren temprano para viajar a Barcelona.',
     'El viaje duraba casi tres horas desde Madrid.',

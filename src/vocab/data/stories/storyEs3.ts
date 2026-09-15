@@ -8,6 +8,8 @@ export const STORY_ES_3: Story = {
   description: 'סופיה חוגגת מסיבת בת-מצווה מסורתית עם משפחתה.',
   image: '/images/stories/story-es-quince.webp',
   imageAlt: 'נערה חוגגת מסיבת בת המצווה שלה עם בלונים ועוגה – מתוך הסיפור La Fiesta de Quince Años',
+  ageRange: ['13-15', '16-18'],
+  genres: ['comedy'],
   lines: [
     'Sofía cumplió quince años en el mes de mayo.',
     'Su familia organizó una gran fiesta en el jardín.',

@@ -8,6 +8,8 @@ export const STORY_10: Story = {
   description: 'סופי נתקעת עם הרכב בכביש שומם, וזר אדיב עוזר לה.',
   image: '/images/stories/story-helpful-stranger.webp',
   imageAlt: 'מכונית עצורה בצד כביש בלילה וזר אדיב מגיע לעזור – מתוך הסיפור The Helpful Stranger',
+  ageRange: ['16-18', '18+'],
+  genres: ['suspense'],
   lines: [
     "Sophie's car stopped working on a quiet road.",
     'She had no idea what was wrong with it.',

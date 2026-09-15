@@ -8,6 +8,8 @@ export const STORY_7: Story = {
   description: 'ג׳יימס יוצא לטיול רגלי מרגיע בעיר בסוף יום עבודה ארוך.',
   image: '/images/stories/story-city-walk.webp',
   imageAlt: 'אדם הולך ברגל ברחוב עירוני בשעת שקיעה – מתוך הסיפור A Walk in the City',
+  ageRange: ['16-18', '18+'],
+  genres: ['adventure'],
   lines: [
     'After a long week at work, James wanted some fresh air.',
     'He decided to take a walk through the city center.',

@@ -8,6 +8,8 @@ export const STORY_HE_1: Story = {
   description: 'נועה יוצאת עם אבא שלה ליום כיף בגן החיות.',
   image: '/images/stories/story-he-zoo.webp',
   imageAlt: 'ילדה מביטה באריה ובפיל בגן החיות – מתוך הסיפור ביקור בגן החיות',
+  ageRange: ['6-8', '9-12'],
+  genres: ['adventure'],
   lines: [
     'נועה אוהבת מאוד בעלי חיים.',
     'ביום שישי היא הלכה עם אבא שלה לגן החיות.',

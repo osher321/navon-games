@@ -8,6 +8,8 @@ export const STORY_ES_5: Story = {
   description: 'לאורה ופדרו מגלים מסעדה חדשה וטעימה ליד הבית.',
   image: '/images/stories/story-es-restaurante.webp',
   imageAlt: 'זוג יושב לארוחה במסעדה חדשה וחמימה – מתוך הסיפור Un Restaurante Nuevo',
+  ageRange: ['16-18', '18+'],
+  genres: ['romance'],
   lines: [
     'Laura y Pedro encontraron un restaurante nuevo cerca de casa.',
     'El lugar tenía mesas pequeñas y luces suaves.',

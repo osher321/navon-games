@@ -8,6 +8,8 @@ export const STORY_ES_1: Story = {
   description: 'אנה יוצאת לשוק השבת הצבעוני ונהנית מהאווירה.',
   image: '/images/stories/story-es-mercado.webp',
   imageAlt: 'דוכני שוק צבעוניים עם פירות וירקות ביום שבת – מתוך הסיפור El Mercado del Sábado',
+  ageRange: ['9-12', '13-15'],
+  genres: ['comedy'],
   lines: [
     'Ana fue al mercado el sábado por la mañana.',
     'El mercado estaba lleno de gente y colores.',

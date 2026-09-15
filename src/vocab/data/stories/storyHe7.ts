@@ -8,6 +8,8 @@ export const STORY_HE_7: Story = {
   description: 'רותם ומשפחתה מתכוננים יחד לליל הסדר.',
   image: '/images/stories/story-he-passover.webp',
   imageAlt: 'משפחה יושבת סביב שולחן חג מקושט לליל הסדר – מתוך הסיפור הכנות לפסח',
+  ageRange: ['9-12', '13-15'],
+  genres: ['comedy'],
   lines: [
     'שבוע לפני חג הפסח כל המשפחה מתחילה בניקיון גדול.',
     'רותם וההורים שלה מנקים כל פינה וארון בבית.',

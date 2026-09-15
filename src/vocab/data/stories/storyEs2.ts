@@ -8,6 +8,8 @@ export const STORY_ES_2: Story = {
   description: 'קרלוס נשאר בבית ביום גשום ונהנה מרגיעה פשוטה.',
   image: '/images/stories/story-es-lluvia.webp',
   imageAlt: 'בית חם ונעים ביום גשום עם כלב מתחת לחלון – מתוך הסיפור Un Día de Lluvia',
+  ageRange: ['6-8', '9-12'],
+  genres: ['comedy'],
   lines: [
     'Llovía mucho esa mañana en la ciudad.',
     'Carlos decidió quedarse en casa todo el día.',

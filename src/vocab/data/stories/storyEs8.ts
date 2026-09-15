@@ -8,6 +8,8 @@ export const STORY_ES_8: Story = {
   description: 'דניאלה לומדת להכין טורטייה ספרדית מסורתית בשיעור בישול.',
   image: '/images/stories/story-es-cocina.webp',
   imageAlt: 'שף בבישול מול כיריים בכיתת בישול – מתוך הסיפור La Clase de Cocina',
+  ageRange: ['13-15', '16-18'],
+  genres: ['comedy'],
   lines: [
     'Daniela decidió tomar una clase de cocina española.',
     'El chef enseñó a preparar una tortilla tradicional.',

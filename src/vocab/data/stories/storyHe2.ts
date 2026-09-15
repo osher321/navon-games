@@ -8,6 +8,8 @@ export const STORY_HE_2: Story = {
   description: 'איתן ואמא שלו אופים יחד עוגת שוקולד ליום ההולדת.',
   image: '/images/stories/story-he-cake.webp',
   imageAlt: 'ילד ואמו עומדים ליד עוגת שוקולד ליום הולדת – מתוך הסיפור עוגת יום ההולדת',
+  ageRange: ['6-8', '9-12'],
+  genres: ['comedy'],
   lines: [
     'מחר יום ההולדת של איתן והוא מאוד מתרגש.',
     'אמא שלו החליטה להכין עוגת שוקולד בעצמה.',

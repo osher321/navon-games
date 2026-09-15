@@ -8,6 +8,8 @@ export const STORY_1: Story = {
   description: 'מריה ואחיה יוצאים ליום כיף בחוף הים.',
   image: '/images/stories/story-beach.webp',
   imageAlt: 'שני ילדים משחקים בחוף ים שטוף שמש – מתוך הסיפור A Day at the Beach',
+  ageRange: ['6-8', '9-12'],
+  genres: ['adventure'],
   lines: [
     'Maria woke up early on Saturday morning.',
     'The sun was shining and the sky was blue.',

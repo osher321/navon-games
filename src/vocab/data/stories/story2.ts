@@ -8,6 +8,8 @@ export const STORY_2: Story = {
   description: 'דיוויד מתחיל יום ראשון בעבודה חדשה ומתמודד עם ההתרגשות.',
   image: '/images/stories/story-new-job.webp',
   imageAlt: 'צעיר עם מזוודה עומד מול משרד ביום העבודה הראשון שלו – מתוך הסיפור The New Job',
+  ageRange: ['16-18', '18+'],
+  genres: ['comedy'],
   lines: [
     'David started his new job on Monday.',
     'He was nervous but also excited.',

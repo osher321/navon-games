@@ -8,6 +8,8 @@ export const STORY_6: Story = {
   description: 'בית קפה קטן שהופך ללב השכונה כולה.',
   image: '/images/stories/story-small-cafe.webp',
   imageAlt: 'בית קפה קטן וחמים בפינת רחוב עם שני אנשים – מתוך הסיפור The Small Cafe',
+  ageRange: ['9-12', '13-15'],
+  genres: ['comedy'],
   lines: [
     'There was a small cafe on the corner street.',
     'Every morning, people came for coffee and bread.',
