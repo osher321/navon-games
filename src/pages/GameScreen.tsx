@@ -45,6 +45,7 @@ const CarRacingGame = lazy(() => import('../arcade3d/racing/CarRacingGame'))
 const EndlessRunnerGame = lazy(() => import('../arcade3d/runner/EndlessRunnerGame'))
 const NinjaRunnerGame = lazy(() => import('../arcade3d/runner/NinjaRunnerGame'))
 const TreasureHuntGame = lazy(() => import('../arcade3d/treasure/TreasureHuntGame'))
+const SoccerGame = lazy(() => import('../arcade3d/soccer/SoccerGame'))
 
 function Arcade3DLoading() {
   const { tr } = useI18n()
@@ -223,6 +224,12 @@ export default function GameScreen({ forcedGameId }: GameScreenProps) {
         return (
           <Suspense fallback={<Arcade3DLoading />}>
             <TreasureHuntGame key={round} onFinish={handleFinish} />
+          </Suspense>
+        )
+      case 'soccer':
+        return (
+          <Suspense fallback={<Arcade3DLoading />}>
+            <SoccerGame key={round} onFinish={handleFinish} />
           </Suspense>
         )
       case 'maze_escape':

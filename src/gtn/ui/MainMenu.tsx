@@ -3,13 +3,14 @@ import { useI18n } from '../../i18n/LanguageContext'
 
 interface MainMenuProps {
   onPlay: () => void
+  onCharacter: () => void
   onMissions: () => void
   onHowToPlay: () => void
   onSettings: () => void
   onBack: () => void
 }
 
-export default function MainMenu({ onPlay, onMissions, onHowToPlay, onSettings, onBack }: MainMenuProps) {
+export default function MainMenu({ onPlay, onCharacter, onMissions, onHowToPlay, onSettings, onBack }: MainMenuProps) {
   const { tr } = useI18n()
 
   return (
@@ -25,6 +26,9 @@ export default function MainMenu({ onPlay, onMissions, onHowToPlay, onSettings, 
       <div className="mt-10 flex w-full max-w-xs flex-col gap-3">
         <button onClick={onPlay} className="rounded-full bg-gradient-to-r from-sunny-400 to-candy-500 px-6 py-4 font-fun text-lg font-extrabold text-ink shadow-pop btn-pressable">
           ▶ PLAY
+        </button>
+        <button onClick={onCharacter} className="rounded-full bg-white/15 px-6 py-3 font-fun font-extrabold text-white btn-pressable">
+          🎮 CHARACTER
         </button>
         <button onClick={onMissions} className="rounded-full bg-white/15 px-6 py-3 font-fun font-extrabold text-white btn-pressable">
           🎯 MISSIONS

@@ -9,6 +9,8 @@ interface WordInfoCardProps {
   translation: string
   language: StoryLanguage
   onClose: () => void
+  /** The story reader's current narration speed, so a word's pronunciation matches the speed the learner already chose for the story. */
+  rate?: number
 }
 
 /** Flag + Hebrew label per story language - one more entry here is the entire cost of a future additional language. */
@@ -31,7 +33,7 @@ const LANGUAGE_META: Record<StoryLanguage, { flag: string; labelHe: string }> = 
  * translate it INTO, so it gets one section (the word + a plain-Hebrew
  * meaning/explanation) and a single "listen" button.
  */
-export default function WordInfoCard({ word, translation, language, onClose }: WordInfoCardProps) {
+export default function WordInfoCard({ word, translation, language, onClose, rate }: WordInfoCardProps) {
   const meta = LANGUAGE_META[language]
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function WordInfoCard({ word, translation, language, onClose }: W
             </p>
             <div className="mt-1 font-fun text-2xl font-extrabold text-ink">{word}</div>
             <div className="mt-3 flex justify-center">
-              <StorySpeakButton text={word} lang="he" label="האזן למילה" />
+              <StorySpeakButton text={word} lang="he" label="האזן למילה" rate={rate} />
             </div>
 
             <div className="my-4 h-px bg-ink/10" />
@@ -85,7 +87,7 @@ export default function WordInfoCard({ word, translation, language, onClose }: W
               <Ltr>{word}</Ltr>
             </div>
             <div className="mt-3 flex justify-center">
-              <StorySpeakButton text={word} lang={language} label={`האזן ${meta.labelHe}`} />
+              <StorySpeakButton text={word} lang={language} label={`האזן ${meta.labelHe}`} rate={rate} />
             </div>
 
             <div className="my-4 h-px bg-ink/10" />
@@ -93,7 +95,7 @@ export default function WordInfoCard({ word, translation, language, onClose }: W
             <p className="text-xs font-bold text-ink/40">🇮🇱 בעברית</p>
             <div className="mt-1 font-fun text-2xl font-extrabold text-grape-600">{translation}</div>
             <div className="mt-3 flex justify-center">
-              <StorySpeakButton text={translation} lang="he" label="האזן בעברית" />
+              <StorySpeakButton text={translation} lang="he" label="האזן בעברית" rate={rate} />
             </div>
           </>
         )}

@@ -42,6 +42,13 @@ function createDefaultProgress(): ProgressState {
     soundOn: true,
     lastGameId: null,
     createdAt: Date.now(),
+    dailyChallenge: null,
+    dailyChallengeStreak: 0,
+    dailyChallengeBestStreak: 0,
+    dailyChallengeLastCompletedDate: null,
+    dailyChallengeTotalCompleted: 0,
+    dailyChallengeTotalXP: 0,
+    gtnSelectedCharacterId: null,
   }
 }
 
@@ -93,17 +100,31 @@ interface RecordGameOptions {
   learnedWordIds?: string[]
 }
 
+interface CompleteDailyChallengeOptions {
+  lang: LangCode
+  correct: number
+  total: number
+  durationSec: number
+}
+
 interface ProgressContextValue {
   progress: ProgressState
   addXP: (amount: number) => void
   recordGameResult: (opts: RecordGameOptions) => { xpEarned: number; newAchievements: string[]; leveledUp: boolean }
   setSelectedLanguage: (lang: LangCode) => void
+  setGtnCharacter: (id: string) => void
   setInterfaceLanguage: (lang: LangCode) => void
   toggleSound: () => void
   updateProfile: (profile: Partial<ChildProfile>) => void
   resetProgress: () => void
   getAdaptiveWords: (lang: LangCode, level: LevelId, pool: string[], count: number) => string[]
   avatars: string[]
+  setDailyChallenge: (state: ProgressState['dailyChallenge']) => void
+  /** Awards XP through the existing recordGameResult pipeline (gameId
+      'daily_challenge') plus a small streak bonus, and advances the
+      dedicated dailyChallenge* streak fields - completely separate from
+      the site-wide `streak` (which tracks "played anything today"). */
+  completeDailyChallenge: (opts: CompleteDailyChallengeOptions) => { xpEarned: number; streak: number; newAchievements: string[] }
 }
 
 const ProgressContext = createContext<ProgressContextValue | null>(null)
@@ -131,6 +152,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // interfaceLanguage (set via setInterfaceLanguage below) for that.
   const setSelectedLanguage = useCallback((lang: LangCode) => {
     setProgress((prev) => ({ ...prev, selectedLanguage: lang }))
+  }, [])
+
+  const setGtnCharacter = useCallback((id: string) => {
+    setProgress((prev) => ({ ...prev, gtnSelectedCharacterId: id }))
   }, [])
 
   const setInterfaceLanguage = useCallback((lang: LangCode) => {
@@ -250,17 +275,78 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return { xpEarned, newAchievements, leveledUp }
   }, [])
 
+  const setDailyChallenge = useCallback((state: ProgressState['dailyChallenge']) => {
+    setProgress((prev) => ({ ...prev, dailyChallenge: state }))
+  }, [])
+
+  const completeDailyChallenge = useCallback(
+    (opts: CompleteDailyChallengeOptions) => {
+      const { xpEarned: baseXp } = recordGameResult({
+        gameId: 'daily_challenge',
+        lang: opts.lang,
+        correct: opts.correct,
+        total: opts.total,
+        durationSec: opts.durationSec,
+      })
+
+      let streakBonusXp = 0
+      let newStreak = 0
+      const newAchievements: string[] = []
+
+      setProgress((prev) => {
+        const today = todayStr()
+        if (prev.dailyChallengeLastCompletedDate === today) {
+          // Already completed today (the UI already guards against this,
+          // but never double-award the streak/bonus if it somehow fires twice).
+          newStreak = prev.dailyChallengeStreak
+          return prev
+        }
+        const isYesterday = prev.dailyChallengeLastCompletedDate === yesterdayStr()
+        newStreak = isYesterday ? prev.dailyChallengeStreak + 1 : 1
+        streakBonusXp = Math.min(50, newStreak * 5)
+
+        const nextState: ProgressState = {
+          ...prev,
+          totalXP: prev.totalXP + streakBonusXp,
+          stars: prev.stars + Math.floor(streakBonusXp / 10),
+          dailyChallengeStreak: newStreak,
+          dailyChallengeBestStreak: Math.max(prev.dailyChallengeBestStreak, newStreak),
+          dailyChallengeLastCompletedDate: today,
+          dailyChallengeTotalCompleted: prev.dailyChallengeTotalCompleted + 1,
+          dailyChallengeTotalXP: prev.dailyChallengeTotalXP + baseXp + streakBonusXp,
+        }
+
+        const unlocked = new Set(nextState.achievements)
+        ACHIEVEMENTS.forEach((a) => {
+          if (!unlocked.has(a.id) && a.check(nextState)) {
+            unlocked.add(a.id)
+            newAchievements.push(a.id)
+          }
+        })
+        nextState.achievements = Array.from(unlocked)
+
+        return nextState
+      })
+
+      return { xpEarned: baseXp + streakBonusXp, streak: newStreak, newAchievements }
+    },
+    [recordGameResult]
+  )
+
   const value: ProgressContextValue = {
     progress,
     addXP,
     recordGameResult,
     setSelectedLanguage,
+    setGtnCharacter,
     setInterfaceLanguage,
     toggleSound,
     updateProfile,
     resetProgress,
     getAdaptiveWords,
     avatars: AVATARS,
+    setDailyChallenge,
+    completeDailyChallenge,
   }
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>

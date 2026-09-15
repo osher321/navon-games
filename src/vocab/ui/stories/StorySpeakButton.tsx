@@ -11,6 +11,9 @@ interface StorySpeakButtonProps {
   /** Compact per-line "listen to sentence" buttons show only the icon - the visible label text is skipped, but `label` still drives the aria-label. */
   iconOnly?: boolean
   className?: string
+  /** Speech rate for this one button - defaults to the site-wide 0.85 games use; the story reader passes its own slower, user-adjustable narration rate so every 🔊 button (word or sentence) matches the story's current speed setting. */
+  rate?: number
+  volume?: number
 }
 
 /**
@@ -20,7 +23,7 @@ interface StorySpeakButtonProps {
  * `lang`, rather than the games' `PronounceButton` (which is deliberately
  * English-only and left untouched). Same play/pause visual pattern either way.
  */
-export default function StorySpeakButton({ text, lang, label, size = 'md', iconOnly = false, className = '' }: StorySpeakButtonProps) {
+export default function StorySpeakButton({ text, lang, label, size = 'md', iconOnly = false, className = '', rate, volume }: StorySpeakButtonProps) {
   const { speak, supported, canSpeak } = useSpeech()
   const [playing, setPlaying] = useState(false)
 
@@ -34,7 +37,7 @@ export default function StorySpeakButton({ text, lang, label, size = 'md', iconO
       onClick={(e) => {
         e.stopPropagation()
         setPlaying(true)
-        speak(text, lang, () => setPlaying(false))
+        speak(text, lang, () => setPlaying(false), { rate, volume })
       }}
       aria-label={playing ? `מקריא: ${label}` : label}
       className={`inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-fun font-extrabold shadow-card card-outline btn-pressable transition-colors ${sizeClasses} ${

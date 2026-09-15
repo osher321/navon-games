@@ -1,3 +1,5 @@
+import type { DailyChallengeProgress } from '../data/dailyChallenge/types'
+
 export type LangCode = 'he' | 'en' | 'ar' | 'es'
 
 export type LevelId = 'beginner' | 'basic' | 'intermediate' | 'advanced'
@@ -103,4 +105,15 @@ export interface ProgressState {
   soundOn: boolean
   lastGameId: string | null
   createdAt: number
+  /** 🎯 Daily Challenge - the in-progress/last-generated challenge, plus the
+      streak stats kept at this top level (not nested) so achievement
+      `check()` functions can read them the same way they read `streak`. */
+  dailyChallenge: DailyChallengeProgress | null
+  dailyChallengeStreak: number
+  dailyChallengeBestStreak: number
+  dailyChallengeLastCompletedDate: string | null
+  dailyChallengeTotalCompleted: number
+  dailyChallengeTotalXP: number
+  /** GTN's chosen player character (one of the 10 CharacterDef ids in gtn/game/characters/roster.ts) - null until the player has picked one for the first time. */
+  gtnSelectedCharacterId: string | null
 }

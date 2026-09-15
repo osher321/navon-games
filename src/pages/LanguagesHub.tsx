@@ -10,6 +10,7 @@ import LevelSelector from '../components/LevelSelector'
 import GameGrid from '../components/GameGrid'
 import ProgressBar from '../components/ProgressBar'
 import Breadcrumbs from '../components/Breadcrumbs'
+import DailyChallengeCard from '../components/dailyChallenge/DailyChallengeCard'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL } from '../seo/config'
 import { SLUG_TO_LANG, LANG_TO_SLUG } from '../seo/languageSlugs'
@@ -150,6 +151,8 @@ export default function LanguagesHub() {
         <p className="mb-5 text-center text-ink/50">{tr('stories_choose_lang_hint')}</p>
         <GameGrid games={STORY_GAMES} hrefFor={hrefFor} />
       </section>
+
+      <DailyChallengeCard />
 
       <section className="rounded-xl2 bg-white/70 p-5 shadow-card card-outline sm:p-6">
         <h2 className="mb-5 text-center font-fun text-2xl font-extrabold text-grape-600">🎮 {tr('languages_games_section_title')}</h2>

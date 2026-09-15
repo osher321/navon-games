@@ -52,6 +52,7 @@ export const FUN_GAMES: GameDef[] = [
   { id: 'money_grab', category: 'fun', section: 'fun', icon: '💰', color: 'from-sunny-500 to-grass-600', nameKey: 'game_money_grab_name', descKey: 'game_money_grab_desc', isNew: true },
   { id: 'card_war', category: 'fun', section: 'fun', icon: '🃏', color: 'from-ink to-grape-700', nameKey: 'game_card_war_name', descKey: 'game_card_war_desc', isNew: true },
   { id: 'sixty_second_challenge', category: 'fun', section: 'fun', icon: '⏱️', color: 'from-candy-600 to-sunny-500', nameKey: 'game_sixty_challenge_name', descKey: 'game_sixty_challenge_desc', isNew: true },
+  { id: 'soccer', category: 'fun', section: 'fun', icon: '⚽', color: 'from-grass-600 to-sky-600', nameKey: 'game_soccer_name', descKey: 'game_soccer_desc', isNew: true },
 ]
 
 export const LANGUAGE_GAMES: GameDef[] = [

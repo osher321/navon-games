@@ -1,5 +1,7 @@
 import * as THREE from 'three'
-import { buildHumanoid, animateHumanoid, animateSwimStroke, HIP_HEIGHT, type HumanoidParts } from './humanoid'
+import { animateHumanoid, animateSwimStroke, HIP_HEIGHT, type HumanoidParts } from './humanoid'
+import { buildCharacter } from './characters/build'
+import { getCharacterDef } from './characters/roster'
 import { resolveMove, type Collider } from './collision'
 import { WORLD_SOUTH_LIMIT, WORLD_NORTH_LIMIT, WORLD_EAST_LIMIT, WORLD_WEST_LIMIT, getGroundHeightAt, isInWater } from './world'
 import { waveHeightAt } from './water'
@@ -19,7 +21,7 @@ const PARACHUTE_FALL_SPEED = 3.2
 const PARACHUTE_DRIFT_SPEED = 3.5
 
 /**
- * The player's original low-poly humanoid, with a lightweight kinematic
+ * The player's chosen character (see gtn/game/characters - one of 10 selectable original characters, built via buildCharacter), with a lightweight kinematic
  * controller: walk/run speed, jump/gravity, wall collision (sliding along
  * obstacles rather than stopping dead), a procedural walk/run cycle driven
  * by how fast and how hard the input is being pushed - and swimming, which
@@ -42,8 +44,8 @@ export class Player {
   private parachuteVelY = 0
   private aiming = false
 
-  constructor() {
-    this.parts = buildHumanoid()
+  constructor(characterId?: string | null) {
+    this.parts = buildCharacter(getCharacterDef(characterId))
     this.root = this.parts.root
   }
 

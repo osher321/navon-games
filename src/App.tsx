@@ -55,6 +55,19 @@ function VocabAcademyLoading() {
   )
 }
 
+// The Daily Challenge's question generator + 3 question-UI components are
+// only needed by visitors who actually open the challenge, so - like
+// stories/GTN/vocab academy above - it's code-split out of the main bundle.
+const DailyChallengePage = lazy(() => import('./pages/DailyChallengePage'))
+
+function DailyChallengeLoading() {
+  return (
+    <div className="mx-auto flex max-w-4xl items-center justify-center px-4 py-24">
+      <p className="font-fun font-extrabold text-ink/50">Loading…</p>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <div className="min-h-screen">
@@ -96,6 +109,14 @@ export default function App() {
             element={
               <Suspense fallback={<StoriesLoading />}>
                 <StoryReaderPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/learn-languages/daily-challenge"
+            element={
+              <Suspense fallback={<DailyChallengeLoading />}>
+                <DailyChallengePage />
               </Suspense>
             }
           />

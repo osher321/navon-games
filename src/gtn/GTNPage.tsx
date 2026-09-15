@@ -1,18 +1,30 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../i18n/LanguageContext'
+import { useProgress } from '../hooks/useProgress'
 import MainMenu from './ui/MainMenu'
 import InfoPanel from './ui/InfoPanel'
+import CharacterSelect from './ui/CharacterSelect'
 import GameCanvas from './game/GameCanvas'
+import { DEFAULT_CHARACTER_ID } from './game/characters/roster'
 import Breadcrumbs from '../components/Breadcrumbs'
 import SEOHead from '../seo/SEOHead'
 
-type Phase = 'menu' | 'playing' | 'missions' | 'howto' | 'settings'
+type Phase = 'menu' | 'characterSelect' | 'playing' | 'missions' | 'howto' | 'settings'
 
 export default function GTNPage() {
   const { tr } = useI18n()
   const navigate = useNavigate()
+  const { progress, setGtnCharacter } = useProgress()
   const [phase, setPhase] = useState<Phase>('menu')
+
+  // First-ever visit: no character chosen yet - send Play straight to
+  // Character Selection instead of dropping them into the world with a
+  // default they never picked. Every later Play (or the menu's own
+  // "CHARACTER" button) can still change it at any time.
+  const handlePlay = () => {
+    setPhase(progress.gtnSelectedCharacterId ? 'playing' : 'characterSelect')
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 pb-24">
@@ -24,7 +36,8 @@ export default function GTNPage() {
       {phase === 'menu' && <Breadcrumbs items={[{ label: tr('nav_home'), href: '/' }, { label: tr('cat_fun_games'), href: '/games' }, { label: 'GTN' }]} />}
       {phase === 'menu' && (
         <MainMenu
-          onPlay={() => setPhase('playing')}
+          onPlay={handlePlay}
+          onCharacter={() => setPhase('characterSelect')}
           onMissions={() => setPhase('missions')}
           onHowToPlay={() => setPhase('howto')}
           onSettings={() => setPhase('settings')}
@@ -32,7 +45,18 @@ export default function GTNPage() {
         />
       )}
 
-      {phase === 'playing' && <GameCanvas onExit={() => setPhase('menu')} />}
+      {phase === 'characterSelect' && (
+        <CharacterSelect
+          initialId={progress.gtnSelectedCharacterId ?? DEFAULT_CHARACTER_ID}
+          onDone={(id) => {
+            setGtnCharacter(id)
+            setPhase('playing')
+          }}
+          onBack={() => setPhase('menu')}
+        />
+      )}
+
+      {phase === 'playing' && <GameCanvas onExit={() => setPhase('menu')} characterId={progress.gtnSelectedCharacterId ?? DEFAULT_CHARACTER_ID} />}
 
       {phase === 'missions' && (
         <InfoPanel title="🎯 MISSIONS" onClose={() => setPhase('menu')}>

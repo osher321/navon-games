@@ -35,11 +35,11 @@ const DEFAULT_COLORS = {
 export type HumanoidPalette = typeof DEFAULT_COLORS
 
 export const HIP_HEIGHT = 0.86
-const LEG_LENGTH = 0.86
-const TORSO_HEIGHT = 0.6
-const ARM_LENGTH = 0.58
-const SHOULDER_Y = 0.5
-const SHOULDER_X = 0.32
+export const LEG_LENGTH = 0.86
+export const TORSO_HEIGHT = 0.6
+export const ARM_LENGTH = 0.58
+export const SHOULDER_Y = 0.5
+export const SHOULDER_X = 0.32
 
 function clothMat(color: number) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.75, metalness: 0.04 })
@@ -146,7 +146,7 @@ export function buildHumanoid(palette?: Partial<HumanoidPalette>): HumanoidParts
 }
 
 /** A simple canopy + shoulder strings, hidden until the character is actually parachuting. */
-function buildParachuteRig(): THREE.Group {
+export function buildParachuteRig(): THREE.Group {
   const rig = new THREE.Group()
   rig.visible = false
   rig.position.y = HIP_HEIGHT + TORSO_HEIGHT + 0.6

@@ -44,6 +44,8 @@ const DOLPHIN_ACTIVE_RADIUS = 45
 
 interface GameCanvasProps {
   onExit: () => void
+  /** Which of the 10 selectable characters (gtn/game/characters/roster.ts) to build as the player - chosen on the Character Selection screen before GameCanvas ever mounts. */
+  characterId: string
 }
 
 interface VehicleInstance {
@@ -66,7 +68,7 @@ const PROMPT_ICON: Record<VehicleKind, string> = {
   balloon: '🎈',
 }
 
-export default function GameCanvas({ onExit }: GameCanvasProps) {
+export default function GameCanvas({ onExit, characterId }: GameCanvasProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<GtnInput | null>(null)
 
@@ -157,7 +159,7 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
     const dolphinPods = buildDolphinPods()
     dolphinPods.forEach((pod) => scene.add(pod.group))
 
-    const player = new Player()
+    const player = new Player(characterId)
     player.position.copy(SPAWN_POINT)
     scene.add(player.root)
 
@@ -270,6 +272,40 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
     window.addEventListener('resize', resize)
     const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(mount)
+
+    // Manual camera look-around: right-mouse-drag on desktop (left mouse is
+    // already bound to firing above), or a one-finger drag on mobile
+    // (touch has no separate fire-on-canvas binding, so any touch drag on
+    // the canvas is free for this). Lets the player orbit fully around the
+    // character - including all the way to the front - without touching
+    // movement input or the existing always-behind default framing, which
+    // ChaseCamera eases back to on its own once the drag ends.
+    let orbitPointerId: number | null = null
+    let orbitLastX = 0
+    const ORBIT_SENSITIVITY = 0.006
+    const onOrbitPointerDown = (e: PointerEvent) => {
+      const isTouch = e.pointerType === 'touch'
+      const isRightMouse = e.pointerType === 'mouse' && e.button === 2
+      if (!isTouch && !isRightMouse) return
+      if (orbitPointerId !== null) return
+      orbitPointerId = e.pointerId
+      orbitLastX = e.clientX
+    }
+    const onOrbitPointerMove = (e: PointerEvent) => {
+      if (e.pointerId !== orbitPointerId) return
+      const dx = e.clientX - orbitLastX
+      orbitLastX = e.clientX
+      chaseCamera.addOrbitYaw(dx * ORBIT_SENSITIVITY)
+    }
+    const onOrbitPointerEnd = (e: PointerEvent) => {
+      if (e.pointerId === orbitPointerId) orbitPointerId = null
+    }
+    const onOrbitContextMenu = (e: MouseEvent) => e.preventDefault()
+    renderer.domElement.addEventListener('pointerdown', onOrbitPointerDown)
+    window.addEventListener('pointermove', onOrbitPointerMove)
+    window.addEventListener('pointerup', onOrbitPointerEnd)
+    window.addEventListener('pointercancel', onOrbitPointerEnd)
+    renderer.domElement.addEventListener('contextmenu', onOrbitContextMenu)
 
     let mode: 'onFoot' | VehicleKind | 'interior' = 'onFoot'
     let activeVehicle: VehicleInstance | null = null
@@ -649,6 +685,11 @@ export default function GameCanvas({ onExit }: GameCanvasProps) {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
       resizeObserver.disconnect()
+      renderer.domElement.removeEventListener('pointerdown', onOrbitPointerDown)
+      window.removeEventListener('pointermove', onOrbitPointerMove)
+      window.removeEventListener('pointerup', onOrbitPointerEnd)
+      window.removeEventListener('pointercancel', onOrbitPointerEnd)
+      renderer.domElement.removeEventListener('contextmenu', onOrbitContextMenu)
       input.dispose()
       inputRef.current = null
       if (activeInterior) (activeInterior as InteriorBuild).dispose()

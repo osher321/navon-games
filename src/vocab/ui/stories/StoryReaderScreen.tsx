@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import type { Story } from '../../data/stories/types'
 import { resolveWordTranslation, tokenizeLine } from '../../data/stories'
 import { getStoryLevelDef } from '../../data/stories/types'
 import WordInfoCard from './WordInfoCard'
 import StorySpeakButton from './StorySpeakButton'
+import { useStoryNarration, NARRATION_SPEEDS, type NarrationSpeed } from './useStoryNarration'
 import { useI18n } from '../../../i18n/LanguageContext'
+
+const SPEED_LABEL: Record<NarrationSpeed, string> = { 0.6: '🐢🐢', 0.75: '🐢', 1: '▶️' }
 
 export interface OtherStoryLink {
   id: string
@@ -28,6 +32,8 @@ export default function StoryReaderScreen({ story, isCompleted, backHref, onMark
   const { tr } = useI18n()
   const [activeToken, setActiveToken] = useState<string | null>(null)
   const levelDef = getStoryLevelDef(story.level)
+  const narration = useStoryNarration(story.lines, story.language)
+  const contentDir = story.language === 'he' ? 'rtl' : 'ltr'
 
   useEffect(() => {
     onMarkRead(story.id)
@@ -63,34 +69,118 @@ export default function StoryReaderScreen({ story, isCompleted, backHref, onMark
       </div>
 
       <div className="rounded-blob bg-white p-5 shadow-pop card-outline sm:p-6">
-        <p className="mb-4 text-center text-xs font-bold text-ink/40">👆 {tr('story_click_word_hint')}</p>
-        <div className="space-y-3" dir={story.language === 'he' ? 'rtl' : 'ltr'}>
-          {story.lines.map((line, lineIdx) => (
-            <div key={lineIdx} className="flex items-start gap-2">
-              <div className="mt-0.5 shrink-0">
-                <StorySpeakButton text={line} lang={story.language} label={tr('story_hear_sentence')} size="sm" iconOnly />
-              </div>
-              <p className="text-lg leading-relaxed text-ink">
-                {tokenizeLine(line).map((token, tokenIdx) => {
-                  if (token.type === 'plain') return <span key={tokenIdx}>{token.text}</span>
-                  const tokenKey = `${lineIdx}-${tokenIdx}::${token.text}`
-                  const isActive = activeToken === tokenKey
-                  return (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-bold text-ink/40">👆 {tr('story_click_word_hint')}</p>
+          {narration.supported && (
+            <button
+              onClick={() => narration.setStudyMode(!narration.studyMode)}
+              aria-pressed={narration.studyMode}
+              className={`rounded-full px-3 py-1.5 text-xs font-extrabold shadow-card btn-pressable ${
+                narration.studyMode ? 'bg-grape-500 text-white' : 'bg-white text-ink/60 card-outline'
+              }`}
+            >
+              📚 {tr('story_study_mode')}
+            </button>
+          )}
+        </div>
+
+        {narration.supported && narration.studyMode && (
+          <div className="mb-5 rounded-xl2 bg-grape-50 p-3 sm:p-4">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={narration.prev}
+                aria-label={tr('story_player_prev')}
+                className="grid h-11 w-11 place-items-center rounded-full bg-white text-lg shadow-card btn-pressable"
+              >
+                ⏮️
+              </button>
+              <button
+                onClick={() => (narration.isPlaying ? narration.pause() : narration.play())}
+                aria-label={narration.isPlaying ? tr('story_player_pause') : tr('story_player_play')}
+                className="grid h-14 w-14 place-items-center rounded-full bg-grape-500 text-2xl text-white shadow-card btn-pressable"
+              >
+                {narration.isPlaying ? '⏸️' : '▶️'}
+              </button>
+              <button
+                onClick={narration.stop}
+                aria-label={tr('story_player_stop')}
+                className="grid h-11 w-11 place-items-center rounded-full bg-white text-lg shadow-card btn-pressable"
+              >
+                ⏹️
+              </button>
+              <button
+                onClick={narration.next}
+                aria-label={tr('story_player_next')}
+                className="grid h-11 w-11 place-items-center rounded-full bg-white text-lg shadow-card btn-pressable"
+              >
+                ⏭️
+              </button>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+              <span className="text-xs font-bold text-ink/40">🐢 {tr('story_player_speed')}</span>
+              {NARRATION_SPEEDS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => narration.setRate(s)}
+                  aria-pressed={narration.rate === s}
+                  className={`rounded-full px-3 py-1.5 text-xs font-extrabold shadow-card btn-pressable ${
+                    narration.rate === s ? 'bg-sunny-400 text-ink' : 'bg-white text-ink/60'
+                  }`}
+                >
+                  {SPEED_LABEL[s]} {s}x
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3" dir={contentDir}>
+          {story.lines.map((line, lineIdx) => {
+            const isActiveLine = narration.activeIndex === lineIdx
+            return (
+              <motion.div
+                key={lineIdx}
+                animate={{ backgroundColor: isActiveLine ? 'rgba(196,181,253,0.35)' : 'rgba(0,0,0,0)' }}
+                className="flex items-start gap-2 rounded-xl2 p-1.5 -m-1.5"
+              >
+                <div className="mt-0.5 shrink-0">
+                  {narration.supported ? (
                     <button
-                      key={tokenIdx}
-                      onClick={() => setActiveToken(tokenKey)}
-                      aria-label={`${tr('story_show_meaning')} ${token.text}`}
-                      className={`rounded px-0.5 font-medium underline decoration-dotted decoration-2 underline-offset-4 transition-colors ${
-                        isActive ? 'bg-grape-200 text-grape-800 decoration-grape-500' : 'text-sky-700 decoration-sky-400 hover:bg-sky-50'
+                      onClick={() => narration.replaySentence(lineIdx)}
+                      aria-label={tr('story_hear_sentence')}
+                      className={`grid h-9 w-9 place-items-center rounded-full text-sm shadow-card card-outline btn-pressable ${
+                        isActiveLine && narration.isPlaying ? 'bg-grape-500 text-white' : 'bg-sky-100 text-sky-700'
                       }`}
                     >
-                      {token.text}
+                      {isActiveLine && narration.isPlaying ? '▶️' : '🔊'}
                     </button>
-                  )
-                })}
-              </p>
-            </div>
-          ))}
+                  ) : (
+                    <StorySpeakButton text={line} lang={story.language} label={tr('story_hear_sentence')} size="sm" iconOnly />
+                  )}
+                </div>
+                <p className={`text-lg leading-relaxed ${isActiveLine ? 'font-bold text-grape-800' : 'text-ink'}`}>
+                  {tokenizeLine(line).map((token, tokenIdx) => {
+                    if (token.type === 'plain') return <span key={tokenIdx}>{token.text}</span>
+                    const tokenKey = `${lineIdx}-${tokenIdx}::${token.text}`
+                    const isActive = activeToken === tokenKey
+                    return (
+                      <button
+                        key={tokenIdx}
+                        onClick={() => setActiveToken(tokenKey)}
+                        aria-label={`${tr('story_show_meaning')} ${token.text}`}
+                        className={`rounded px-0.5 font-medium underline decoration-dotted decoration-2 underline-offset-4 transition-colors ${
+                          isActive ? 'bg-grape-200 text-grape-800 decoration-grape-500' : 'text-sky-700 decoration-sky-400 hover:bg-sky-50'
+                        }`}
+                      >
+                        {token.text}
+                      </button>
+                    )
+                  })}
+                </p>
+              </motion.div>
+            )
+          })}
         </div>
       </div>
 
@@ -123,7 +213,13 @@ export default function StoryReaderScreen({ story, isCompleted, backHref, onMark
       )}
 
       {activeWord && (
-        <WordInfoCard word={activeWord.text} translation={activeWord.translation} language={story.language} onClose={() => setActiveToken(null)} />
+        <WordInfoCard
+          word={activeWord.text}
+          translation={activeWord.translation}
+          language={story.language}
+          onClose={() => setActiveToken(null)}
+          rate={narration.rate}
+        />
       )}
     </div>
   )
