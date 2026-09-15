@@ -10,6 +10,8 @@ export interface ChaseCameraConfig {
   distance: number
   height: number
   lookHeight: number
+  /** The orbit angle (radians, added to targetFacing) the camera settles toward when nothing is actively dragging - 0 (default, omitted) is the original "directly behind" framing; Math.PI is "directly in front" (facing the character). A manual drag still overrides this instantly and always eases back to whatever restYaw the current call passes. */
+  restYaw?: number
 }
 
 const FOLLOW_LERP = 5.5
@@ -52,13 +54,19 @@ export class ChaseCamera {
   // pulled-in position can still have an unrelated wall poking across it.
   private hiddenWalls = new Set<THREE.Object3D>()
   // A manual look-around offset added on top of `targetFacing` (see
-  // addOrbitYaw) - stays at 0 (identical to the original always-behind
-  // behavior) unless something is actively dragging to orbit the view,
-  // and eases back to 0 on its own once that stops. This is purely a
-  // viewing feature: it never touches targetFacing/targetPos themselves,
-  // so movement, aiming, and every other consumer of player.facing is
+  // addOrbitYaw) - eases toward whichever `cfg.restYaw` the current call
+  // passes (0 = behind, Math.PI = in front/face-on) once nothing is
+  // actively dragging to orbit the view. This is purely a viewing
+  // feature: it never touches targetFacing/targetPos themselves, so
+  // movement, aiming, and every other consumer of player.facing is
   // completely unaffected.
   private orbitYaw = 0
+  // Snaps orbitYaw straight to that frame's restYaw instead of easing into
+  // it - set on construction and again by resetOcclusion() (scene cuts),
+  // so the very first frame after spawning or teleporting (into/out of a
+  // building) already shows the correct default framing (e.g. the face)
+  // instead of visibly swinging into place over ~1.5s.
+  private snapOrbitNextUpdate = true
 
   constructor(aspect: number) {
     this.camera = new THREE.PerspectiveCamera(62, aspect, 0.1, 220)
@@ -75,7 +83,13 @@ export class ChaseCamera {
   }
 
   update(dt: number, targetPos: THREE.Vector3, targetFacing: number, occluders: THREE.Object3D[], cfg: ChaseCameraConfig = DEFAULT_CFG) {
-    this.orbitYaw -= this.orbitYaw * Math.min(1, ORBIT_DECAY * dt)
+    const restYaw = cfg.restYaw ?? 0
+    if (this.snapOrbitNextUpdate) {
+      this.orbitYaw = restYaw
+      this.snapOrbitNextUpdate = false
+    } else {
+      this.orbitYaw += (restYaw - this.orbitYaw) * Math.min(1, ORBIT_DECAY * dt)
+    }
     const effectiveFacing = targetFacing + this.orbitYaw
     const anchor = new THREE.Vector3(targetPos.x, targetPos.y + cfg.lookHeight, targetPos.z)
     const back = new THREE.Vector3(Math.sin(effectiveFacing), 0, Math.cos(effectiveFacing)).multiplyScalar(-cfg.distance)
@@ -142,6 +156,6 @@ export class ChaseCamera {
     for (const mesh of this.hiddenWalls) mesh.visible = true
     this.hiddenWalls.clear()
     this.currentPos.set(0, 0, 0)
-    this.orbitYaw = 0
+    this.snapOrbitNextUpdate = true
   }
 }

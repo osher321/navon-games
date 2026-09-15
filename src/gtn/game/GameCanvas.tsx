@@ -438,7 +438,17 @@ export default function GameCanvas({ onExit, characterId }: GameCanvasProps) {
       } else if (weaponSystem.isEquipped) {
         weaponSystem.forceHolster()
       }
-      player.setAiming(canUseWeapon && weaponSystem.isEquipped)
+      const isAiming = canUseWeapon && weaponSystem.isEquipped
+      player.setAiming(isAiming)
+      // On foot, the camera defaults to facing the character (restYaw =
+      // Math.PI) so their face is the centerpiece of ordinary gameplay -
+      // while the weapon is drawn it eases back to the practical
+      // behind-the-shoulder framing instead, then returns to the face
+      // view the moment it's holstered again. Vehicles/interiors pass
+      // their own cfg below and are completely unaffected by this.
+      const onFootCameraCfg = isAiming
+        ? { distance: 5.2, height: 2.4, lookHeight: 1.3, restYaw: 0 }
+        : { distance: 3.4, height: 1.55, lookHeight: 1.42, restYaw: Math.PI }
       const firing = canUseWeapon && input.isFireHeld()
       weaponSystem.update(dt, firing, chaseCamera.camera, targets, scene)
       for (const t of targets) t.update(dt, elapsed)
@@ -535,7 +545,7 @@ export default function GameCanvas({ onExit, characterId }: GameCanvasProps) {
         } else {
           const move = input.getMove()
           player.update(dt, move.x, move.y, input.isRunning(), input.consumeJump(), playerColliders, elapsed)
-          chaseCamera.update(dt, player.position, player.facing, occluders)
+          chaseCamera.update(dt, player.position, player.facing, occluders, onFootCameraCfg)
         }
       } else if (mode === 'interior' && activeInterior) {
         const interior = activeInterior
@@ -598,7 +608,7 @@ export default function GameCanvas({ onExit, characterId }: GameCanvasProps) {
         // so they can't snap into a parked car while still falling.
         const move = input.getMove()
         player.update(dt, move.x, move.y, input.isRunning(), input.consumeJump(), playerColliders, elapsed)
-        chaseCamera.update(dt, player.position, player.facing, occluders)
+        chaseCamera.update(dt, player.position, player.facing, occluders, onFootCameraCfg)
       } else if (mode !== 'interior' && activeVehicle) {
         const cfg = VEHICLE_CONFIGS[mode]
         const move = input.getMove()
