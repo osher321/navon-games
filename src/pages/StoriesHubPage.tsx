@@ -17,7 +17,7 @@ export default function StoriesHubPage() {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'סיפורים אינטראקטיביים בעברית, אנגלית וספרדית',
-    description: 'אוסף של 30 סיפורים קצרים ואינטראקטיביים בשלוש שפות, עם מילים לחיצות והשמעה קולית.',
+    description: 'אוסף של 90 סיפורים קצרים ואינטראקטיביים בשלוש שפות (30 בכל שפה), עם מילים לחיצות והשמעה קולית.',
     url: `${SITE_URL}/learn-languages/stories`,
     inLanguage: 'he',
   }
@@ -26,7 +26,7 @@ export default function StoriesHubPage() {
     <div className="mx-auto max-w-3xl px-4 py-6 pb-24">
       <SEOHead
         title="סיפורים בעברית, באנגלית ובספרדית | נבון משחקים"
-        description="קראו סיפורים קצרים ואינטראקטיביים בעברית, באנגלית ובספרדית. לחצו על כל מילה כדי לשמוע הגייה וללמוד את משמעותה - 30 סיפורים מקוריים בשלוש שפות, לכל הרמות."
+        description="קראו סיפורים קצרים ואינטראקטיביים בעברית, באנגלית ובספרדית. לחצו על כל מילה כדי לשמוע הגייה וללמוד את משמעותה - 90 סיפורים מקוריים בשלוש שפות (30 בכל שפה), לכל הרמות."
         path="/learn-languages/stories"
         jsonLd={jsonLd}
       />
