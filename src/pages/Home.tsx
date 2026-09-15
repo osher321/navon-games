@@ -8,6 +8,7 @@ import { ALL_GAMES, EVERY_GAME, getGameById, isGameAvailableForLang } from '../d
 import GameCard from '../components/GameCard'
 import GameGrid from '../components/GameGrid'
 import LanguageSelector from '../components/LanguageSelector'
+import UiLanguageSelector from '../components/UiLanguageSelector'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL, SITE_NAME } from '../seo/config'
 
@@ -114,6 +115,14 @@ export default function Home() {
         </div>
       </motion.section>
 
+      {/* Site interface language - prominent, accessible from the home page
+          per the explicit requirement, independent from the "which language
+          do you want to learn" picker further down this same page. */}
+      <section className="mb-10 rounded-xl2 bg-white/70 p-5 text-center shadow-card card-outline">
+        <p className="mb-3 font-fun font-extrabold text-ink/70">🌍 {tr('ui_lang_picker_title')}</p>
+        <UiLanguageSelector />
+      </section>
+
       {/* The two main site categories - large, unmissable tiles, per the
           explicit "כרטיס/אריח גדול וברור" requirement. Everything else on
           this page (quick-access icons, search, popular/new/recommended)
@@ -126,8 +135,8 @@ export default function Home() {
           className="flex flex-col items-center gap-2 rounded-blob bg-gradient-to-br from-candy-500 via-sunny-500 to-sunny-400 px-6 py-10 text-center text-white shadow-pop card-outline btn-pressable"
         >
           <span className="text-6xl">🎮</span>
-          <span className="mt-2 font-fun text-2xl font-extrabold sm:text-3xl">משחקים בשביל הכיף</span>
-          <span className="text-white/90">כאן משחקים, נהנים ומאתגרים את עצמנו</span>
+          <span className="mt-2 font-fun text-2xl font-extrabold sm:text-3xl">{tr('cat_fun_games')}</span>
+          <span className="text-white/90">{tr('cat_fun_tagline')}</span>
         </MotionLink>
         <MotionLink
           to="/games/learning"
@@ -136,29 +145,29 @@ export default function Home() {
           className="flex flex-col items-center gap-2 rounded-blob bg-gradient-to-br from-sky-600 via-grape-600 to-ink px-6 py-10 text-center text-white shadow-pop card-outline btn-pressable"
         >
           <span className="text-6xl">📚</span>
-          <span className="mt-2 font-fun text-2xl font-extrabold sm:text-3xl">משחקים בשביל ללמוד</span>
-          <span className="text-white/90">כאן לומדים דרך משחקים</span>
+          <span className="mt-2 font-fun text-2xl font-extrabold sm:text-3xl">{tr('cat_learning_games')}</span>
+          <span className="text-white/90">{tr('cat_learning_tagline')}</span>
         </MotionLink>
       </section>
 
       <section className="mb-10 rounded-xl2 bg-white/70 p-5 shadow-card card-outline">
         <label htmlFor="game-search" className="mb-2 block text-center font-fun font-bold text-ink/60">
-          🔎 חיפוש משחקים
+          🔎 {tr('search_games_label')}
         </label>
         <input
           id="game-search"
           type="search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="חפשו משחק לפי שם..."
+          placeholder={tr('search_games_placeholder')}
           className="mx-auto block w-full max-w-md rounded-full border-2 border-ink/10 bg-white px-5 py-2.5 text-center font-fun font-bold text-ink shadow-card outline-none focus:border-grape-400"
         />
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2" role="group" aria-label="סינון לפי קטגוריה">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2" role="group" aria-label={tr('filter_by_category')}>
           {(
             [
-              { id: 'all', label: 'הכל' },
-              { id: 'fun', label: '🎮 בשביל הכיף' },
-              { id: 'learning', label: '📚 בשביל ללמוד' },
+              { id: 'all', label: tr('filter_all') },
+              { id: 'fun', label: `🎮 ${tr('cat_fun_games')}` },
+              { id: 'learning', label: `📚 ${tr('cat_learning_games')}` },
             ] as const
           ).map((opt) => (
             <button
@@ -179,7 +188,7 @@ export default function Home() {
             {searchResults.length > 0 ? (
               <GameGrid games={searchResults} hrefFor={hrefForGame} />
             ) : (
-              <p className="text-center font-fun font-bold text-ink/40">לא נמצאו משחקים מתאימים</p>
+              <p className="text-center font-fun font-bold text-ink/40">{tr('no_games_found')}</p>
             )}
           </div>
         )}
@@ -230,17 +239,10 @@ export default function Home() {
       </HomeSection>
 
       <section className="mt-4 rounded-xl2 bg-white/70 p-6 shadow-card card-outline">
-        <h2 className="mb-2 font-fun text-lg font-extrabold text-ink">משחקים חינוכיים ומהנים לכל המשפחה</h2>
-        <p className="mb-4 text-sm leading-relaxed text-ink/70">
-          נבון משחקים הוא אתר משחקים לילדים ולכל המשפחה, עם משחקים חינוכיים ומשחקי כיף שאפשר לשחק ישירות בדפדפן - בלי הורדות, בחינם, גם במחשב
-          וגם בטלפון. באתר תמצאו משחקי חשבון לתרגול חיבור וחיסור המתאימים לכיתה א׳, כיתה ב׳ וכיתה ג׳, לצד משחקי זיכרון, קליעה למטרה ומבוכים
-          שמתאימים לילדים בכל גיל.
-        </p>
-        <h2 className="mb-2 font-fun text-lg font-extrabold text-ink">לומדים שפות בכיף</h2>
-        <p className="text-sm leading-relaxed text-ink/70">
-          באזור "לומדים שפות" אפשר לתרגל אנגלית וספרדית באמצעות משחקי לימוד, אקדמיית אוצר מילים באנגלית לפי רמות, וסיפורים קצרים ואינטראקטיביים
-          בעברית, באנגלית ובספרדית - בכל סיפור אפשר ללחוץ על כל מילה כדי לשמוע הגייה וללמוד את משמעותה. דרך נעימה ללמוד שפה חדשה תוך כדי משחק.
-        </p>
+        <h2 className="mb-2 font-fun text-lg font-extrabold text-ink">{tr('home_seo_fun_title')}</h2>
+        <p className="mb-4 text-sm leading-relaxed text-ink/70">{tr('home_seo_fun_body')}</p>
+        <h2 className="mb-2 font-fun text-lg font-extrabold text-ink">{tr('home_seo_lang_title')}</h2>
+        <p className="text-sm leading-relaxed text-ink/70">{tr('home_seo_lang_body')}</p>
       </section>
     </div>
   )

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { FunGameProps } from '../../games/types'
 import { useSound } from '../../hooks/useSound'
+import { useI18n } from '../../i18n/LanguageContext'
 import { useArcadeCanvas } from '../useArcadeCanvas'
 import { setupBasicLighting, disposeObject3D } from '../sceneBasics'
 import { HudChip, PauseOverlay } from '../ArcadeUI'
@@ -29,6 +30,7 @@ const OBJECTIVE_LABEL: Record<Objective, string> = {
 }
 
 export default function TreasureHuntGame({ onFinish }: FunGameProps) {
+  const { tr } = useI18n()
   const { play } = useSound()
   const mountRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<Phase>('start')
@@ -264,10 +266,10 @@ export default function TreasureHuntGame({ onFinish }: FunGameProps) {
 
       {phase === 'start' && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-sky-100 p-4 text-center">
-          <h2 className="font-fun text-2xl font-extrabold text-grape-600">🗺️ ציד אוצרות</h2>
+          <h2 className="font-fun text-2xl font-extrabold text-grape-600">🗺️ {tr('game_treasure_hunt_name')}</h2>
           <p className="max-w-xs text-sm text-ink/60">חקרו את האי, מצאו 3 מפתחות, פתרו את חידת אבני הדריכה, פתחו את השער ומצאו את האוצר הסופי.</p>
           <button onClick={start} className="rounded-full bg-grass-500 px-8 py-3 font-fun text-lg font-extrabold text-white shadow-card btn-pressable">
-            ▶ התחילו
+            ▶ {tr('common_start')}
           </button>
         </div>
       )}

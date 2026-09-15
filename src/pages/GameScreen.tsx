@@ -47,9 +47,10 @@ const NinjaRunnerGame = lazy(() => import('../arcade3d/runner/NinjaRunnerGame'))
 const TreasureHuntGame = lazy(() => import('../arcade3d/treasure/TreasureHuntGame'))
 
 function Arcade3DLoading() {
+  const { tr } = useI18n()
   return (
     <div className="flex h-[50vh] items-center justify-center">
-      <p className="font-fun font-extrabold text-ink/50">טוען משחק…</p>
+      <p className="font-fun font-extrabold text-ink/50">{tr('common_loading_game')}</p>
     </div>
   )
 }
@@ -305,9 +306,9 @@ export default function GameScreen({ forcedGameId }: GameScreenProps) {
         <>
           <Breadcrumbs
             items={[
-              { label: 'דף הבית', href: '/' },
-              { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
-              { label: '🧮 חשבון', href: '/games/learning/math' },
+              { label: tr('nav_home'), href: '/' },
+              { label: tr('cat_learning_games'), href: '/games/learning' },
+              { label: `🧮 ${tr('learning_math_title')}`, href: '/games/learning/math' },
               { label: eduSeo.breadcrumbLabel },
             ]}
           />

@@ -3,6 +3,7 @@ import GameGrid from '../components/GameGrid'
 import Breadcrumbs from '../components/Breadcrumbs'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL } from '../seo/config'
+import { useI18n } from '../i18n/LanguageContext'
 
 const HREF_FOR_STORY_GAME: Record<string, string> = {
   stories_academy_he: '/learn-languages/stories/hebrew',
@@ -11,6 +12,7 @@ const HREF_FOR_STORY_GAME: Record<string, string> = {
 }
 
 export default function StoriesHubPage() {
+  const { tr } = useI18n()
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -30,18 +32,15 @@ export default function StoriesHubPage() {
       />
       <Breadcrumbs
         items={[
-          { label: 'דף הבית', href: '/' },
-          { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
-          { label: 'לומדים שפות', href: '/learn-languages' },
-          { label: 'סיפורים' },
+          { label: tr('nav_home'), href: '/' },
+          { label: tr('cat_learning_games'), href: '/games/learning' },
+          { label: tr('cat_languages'), href: '/learn-languages' },
+          { label: tr('cat_stories') },
         ]}
       />
 
-      <h1 className="mb-2 text-center font-fun text-2xl font-extrabold text-grape-600">📖 סיפורים אינטראקטיביים בשלוש שפות</h1>
-      <p className="mx-auto mb-6 max-w-xl text-center text-ink/60">
-        בחרו שפה כדי לקרוא סיפורים קצרים ומקוריים - כל מילה בסיפור ניתנת ללחיצה, כך שאפשר לשמוע הגייה וללמוד את המשמעות תוך כדי קריאה. מתאים לכל
-        מי שרוצה לתרגל קריאה ואוצר מילים בעברית, באנגלית או בספרדית בצורה כיפית.
-      </p>
+      <h1 className="mb-2 text-center font-fun text-2xl font-extrabold text-grape-600">📖 {tr('stories_hub_title')}</h1>
+      <p className="mx-auto mb-6 max-w-xl text-center text-ink/60">{tr('stories_hub_intro')}</p>
 
       <GameGrid games={STORY_GAMES} hrefFor={(g) => HREF_FOR_STORY_GAME[g.id] ?? '/learn-languages/stories'} />
     </div>

@@ -13,6 +13,7 @@ import Breadcrumbs from '../components/Breadcrumbs'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL } from '../seo/config'
 import { SLUG_TO_LANG, LANG_TO_SLUG } from '../seo/languageSlugs'
+import { LANG_META } from '../i18n/translations'
 
 const HREF_FOR_STORY_GAME: Record<string, string> = {
   stories_academy_he: '/learn-languages/stories/hebrew',
@@ -20,33 +21,33 @@ const HREF_FOR_STORY_GAME: Record<string, string> = {
   stories_academy_es: '/learn-languages/stories/spanish',
 }
 
-const PAGE_COPY: Record<'general' | 'english' | 'spanish' | 'hebrew', { title: string; description: string; intro: string; breadcrumbLabel: string }> = {
+// SEO title/description stay Hebrew-authored (this route is prerendered
+// once per language slug, not per interface-language) - the visible intro
+// below reacts to the interface language via introKey instead.
+const SEO_COPY: Record<'general' | 'english' | 'spanish' | 'hebrew', { title: string; description: string }> = {
   general: {
     title: 'לומדים שפות במשחק - עברית, אנגלית וספרדית | נבון משחקים',
     description: 'למדו שפות בצורה מהנה: משחקי אנגלית וספרדית, אוצר מילים לפי רמות וסיפורים אינטראקטיביים - מתאים לילדים ולכל המשפחה.',
-    intro: 'האזור "לומדים שפות" מאפשר ללמוד שפות חדשות באמצעות משחקים, תרגול אוצר מילים וסיפורים אינטראקטיביים. בחרו שפה כדי להתחיל לתרגל.',
-    breadcrumbLabel: 'לומדים שפות',
   },
   english: {
     title: 'לימוד אנגלית לילדים - משחקים ואוצר מילים | נבון משחקים',
     description: 'לימוד אנגלית לילדים בצורה מהנה: משחקי אנגלית, תרגול אוצר מילים באנגלית לפי רמות וסיפורים קצרים באנגלית עם הגייה.',
-    intro:
-      'אזור האנגלית כולל משחקי אנגלית מגוונים, אקדמיית אוצר מילים באנגלית עם 6 רמות לימוד, וסיפורים באנגלית שבהם אפשר ללחוץ על כל מילה כדי לשמוע הגייה וללמוד תרגום. דרך נעימה לתרגל אנגלית ולהרחיב את אוצר המילים.',
-    breadcrumbLabel: 'אנגלית',
   },
   spanish: {
     title: 'לימוד ספרדית למתחילים - משחקים ואוצר מילים | נבון משחקים',
     description: 'לימוד ספרדית למתחילים בצורה מהנה: משחקי ספרדית, תרגול אוצר מילים בספרדית וסיפורים קצרים בספרדית עם הגייה.',
-    intro:
-      'אזור הספרדית כולל משחקי ספרדית לתרגול מילים ומשפטים, וסיפורים בספרדית שבהם אפשר ללחוץ על כל מילה כדי לשמוע הגייה וללמוד את התרגום לעברית. מצוין למתחילים שרוצים ללמוד ספרדית בצורה כיפית.',
-    breadcrumbLabel: 'ספרדית',
   },
   hebrew: {
     title: 'משחקי עברית ולימוד שפות | נבון משחקים',
     description: 'משחקי עברית לתרגול שפה, לצד לימוד אנגלית וספרדית - הכל במקום אחד ובאמצעות משחק.',
-    intro: 'אזור העברית כולל משחקים לתרגול השפה העברית, וגם דרך נוחה לעבור ללימוד אנגלית או ספרדית.',
-    breadcrumbLabel: 'עברית',
   },
+}
+
+const UI_COPY: Record<'general' | 'english' | 'spanish' | 'hebrew', { introKey: string }> = {
+  general: { introKey: 'languages_hub_general_intro' },
+  english: { introKey: 'languages_hub_english_intro' },
+  spanish: { introKey: 'languages_hub_spanish_intro' },
+  hebrew: { introKey: 'languages_hub_hebrew_intro' },
 }
 
 export default function LanguagesHub() {
@@ -101,36 +102,51 @@ export default function LanguagesHub() {
   }
 
   const copyKey = langSlug === 'english' ? 'english' : langSlug === 'spanish' ? 'spanish' : langSlug === 'hebrew' ? 'hebrew' : 'general'
-  const copy = PAGE_COPY[copyKey]
+  const seo = SEO_COPY[copyKey]
+  const ui = UI_COPY[copyKey]
   const path = langSlug ? `/learn-languages/${langSlug}` : '/learn-languages'
+  // The language's own native-script name (e.g. "English") doubles as the
+  // breadcrumb label for its hub page - reactive by construction, no
+  // separate per-language breadcrumb translation keys needed.
+  const breadcrumbLabel = langSlug && paramLang ? LANG_META[paramLang].native : undefined
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: copy.title,
-    description: copy.description,
+    name: seo.title,
+    description: seo.description,
     url: `${SITE_URL}${path}`,
     inLanguage: 'he',
   }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 pb-24">
-      <SEOHead title={copy.title} description={copy.description} path={path} jsonLd={jsonLd} />
+      <SEOHead title={seo.title} description={seo.description} path={path} jsonLd={jsonLd} />
       <Breadcrumbs
         items={
-          langSlug
+          breadcrumbLabel
             ? [
-                { label: 'דף הבית', href: '/' },
-                { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
-                { label: 'לומדים שפות', href: '/learn-languages' },
-                { label: copy.breadcrumbLabel },
+                { label: tr('nav_home'), href: '/' },
+                { label: tr('cat_learning_games'), href: '/games/learning' },
+                { label: tr('cat_languages'), href: '/learn-languages' },
+                { label: breadcrumbLabel },
               ]
-            : [{ label: 'דף הבית', href: '/' }, { label: 'משחקים בשביל ללמוד', href: '/games/learning' }, { label: 'לומדים שפות' }]
+            : [{ label: tr('nav_home'), href: '/' }, { label: tr('cat_learning_games'), href: '/games/learning' }, { label: tr('cat_languages') }]
         }
       />
 
       <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">{tr('language_games_title')}</h1>
-      <p className="mx-auto mb-6 max-w-xl text-center text-sm text-ink/60">{copy.intro}</p>
+      <p className="mx-auto mb-6 max-w-xl text-center text-sm text-ink/60">{tr(ui.introKey)}</p>
+
+      {/* Stories (📖 סיפורים) is a sibling section of the language
+          selector/grid below, not one of its filtered entries - it always
+          shows all 3 language cards regardless of which language is
+          currently selected further down. */}
+      <div>
+        <h2 className="mb-1 text-center font-fun text-2xl font-extrabold text-grape-600">📖 {tr('cat_stories')}</h2>
+        <p className="mb-4 text-center text-ink/50">{tr('stories_choose_lang_hint')}</p>
+        <GameGrid games={STORY_GAMES} hrefFor={hrefFor} />
+      </div>
 
       <LanguageSelector value={lang} onChange={handleLangChange} />
 
@@ -146,16 +162,6 @@ export default function LanguagesHub() {
 
       <div className="mt-10">
         <GameGrid games={availableGames} hrefFor={hrefFor} />
-      </div>
-
-      {/* Stories (📖 סיפורים) is a sibling section of the language
-          selector/grid above, not one of its filtered entries - it always
-          shows all 3 language cards regardless of which language is
-          currently selected up top. */}
-      <div className="mt-10">
-        <h2 className="mb-1 text-center font-fun text-2xl font-extrabold text-grape-600">📖 סיפורים</h2>
-        <p className="mb-4 text-center text-ink/50">בחרו שפה כדי לקרוא סיפורים קצרים ואינטראקטיביים</p>
-        <GameGrid games={STORY_GAMES} hrefFor={hrefFor} />
       </div>
     </div>
   )

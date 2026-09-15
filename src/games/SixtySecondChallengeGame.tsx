@@ -215,7 +215,7 @@ export default function SixtySecondChallengeGame({ onFinish }: FunGameProps) {
           onClick={startGame}
           className="rounded-full bg-candy-500 px-8 py-3 font-fun text-lg font-extrabold text-white shadow-card btn-pressable"
         >
-          ▶ התחילו - ⏱️ 60
+          ▶ {tr('common_start')} - ⏱️ 60
         </button>
       </div>
     )
@@ -236,7 +236,7 @@ export default function SixtySecondChallengeGame({ onFinish }: FunGameProps) {
             onClick={() => onFinish({ correct: score, total: Math.max(score, Math.round(score * 1.2)) || 1 })}
             className="mt-5 rounded-full bg-grape-500 px-8 py-3 font-fun text-lg font-extrabold text-white shadow-card btn-pressable"
           >
-            המשיכו ➡
+            {tr('common_continue')} ➡
           </button>
         </div>
       </div>

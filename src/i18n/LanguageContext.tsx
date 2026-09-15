@@ -14,11 +14,11 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue | null>(null)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const { setSelectedLanguage } = useProgress()
-  // The site interface is always Hebrew/RTL - what a learner is *studying*
-  // (progress.selectedLanguage - English, Spanish, ...) is a completely
-  // separate concept and never changes menus, buttons, or instructions.
-  const lang: LangCode = 'he'
+  const { progress, setInterfaceLanguage } = useProgress()
+  // The site's UI language (menus, buttons, headings) - independent from
+  // progress.selectedLanguage, which is which language a learner is
+  // *studying* and never changes menus/buttons/instructions on its own.
+  const lang: LangCode = progress.interfaceLanguage
   const dir = LANG_META[lang].dir
 
   useEffect(() => {
@@ -30,10 +30,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({
       lang,
       dir,
-      setLang: setSelectedLanguage,
+      setLang: setInterfaceLanguage,
       tr: (key: string) => t(lang, key),
     }),
-    [lang, dir, setSelectedLanguage]
+    [lang, dir, setInterfaceLanguage]
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

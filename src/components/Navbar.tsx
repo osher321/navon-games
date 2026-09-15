@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '../i18n/LanguageContext'
 import { useProgress } from '../hooks/useProgress'
+import UiLanguageSelector from './UiLanguageSelector'
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav_home', icon: '🏠' },
@@ -42,6 +43,7 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <UiLanguageSelector variant="compact" />
             <div className="flex items-center gap-1 rounded-full bg-sunny-100 px-3 py-1.5 font-fun font-extrabold text-sunny-600 shadow-card">
               <span>⭐</span>
               <span>{progress.stars}</span>

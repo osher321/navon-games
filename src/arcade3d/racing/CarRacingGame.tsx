@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { FunGameProps } from '../../games/types'
 import { useSound } from '../../hooks/useSound'
+import { useI18n } from '../../i18n/LanguageContext'
 import DifficultySelector from '../../components/DifficultySelector'
 import { useArcadeCanvas } from '../useArcadeCanvas'
 import { setupBasicLighting, buildGroundPlane, disposeObject3D } from '../sceneBasics'
@@ -15,11 +16,7 @@ import { TRACKS, buildTrack } from './track'
 import { RivalCar } from './RivalCar'
 
 type Difficulty = 'easy' | 'medium' | 'hard'
-const DIFFICULTY_OPTIONS: { id: Difficulty; icon: string; label: string }[] = [
-  { id: 'easy', icon: '🟢', label: 'קל' },
-  { id: 'medium', icon: '🟡', label: 'בינוני' },
-  { id: 'hard', icon: '🔴', label: 'קשה' },
-]
+const DIFFICULTY_ICON: Record<Difficulty, string> = { easy: '🟢', medium: '🟡', hard: '🔴' }
 const RIVAL_SPEED: Record<Difficulty, number> = { easy: 0.72, medium: 0.85, hard: 0.97 }
 const LAPS_TO_WIN = 3
 const TURBO_MULT = 1.55
@@ -29,6 +26,7 @@ const COIN_RADIUS = 1.4
 type Phase = 'start' | 'playing' | 'paused'
 
 export default function CarRacingGame({ onFinish }: FunGameProps) {
+  const { tr } = useI18n()
   const { play } = useSound()
   const mountRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<Phase>('start')
@@ -258,7 +256,16 @@ export default function CarRacingGame({ onFinish }: FunGameProps) {
 
       {phase === 'start' && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-sky-100 p-4">
-          <DifficultySelector title="🏎️ מרוץ מכוניות" subtitle="בחרו רמת קושי - 3 הקפות לניצחון" options={DIFFICULTY_OPTIONS} onSelect={startRace} />
+          <DifficultySelector
+            title={`🏎️ ${tr('game_car_racing_name')}`}
+            subtitle={tr('choose_level')}
+            options={[
+              { id: 'easy', icon: DIFFICULTY_ICON.easy, label: tr('difficulty_easy') },
+              { id: 'medium', icon: DIFFICULTY_ICON.medium, label: tr('difficulty_medium') },
+              { id: 'hard', icon: DIFFICULTY_ICON.hard, label: tr('difficulty_hard') },
+            ]}
+            onSelect={startRace}
+          />
         </div>
       )}
 
@@ -274,7 +281,7 @@ export default function CarRacingGame({ onFinish }: FunGameProps) {
 
           <button
             onClick={() => setPhase('paused')}
-            aria-label="הפסקה"
+            aria-label={tr('common_pause')}
             className="absolute end-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-lg shadow-card btn-pressable"
           >
             ⏸️

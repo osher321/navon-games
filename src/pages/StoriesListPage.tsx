@@ -5,44 +5,52 @@ import StoriesListScreen from '../vocab/ui/stories/StoriesListScreen'
 import Breadcrumbs from '../components/Breadcrumbs'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL } from '../seo/config'
-import { SLUG_TO_LANG, LANG_LABEL_HE } from '../seo/languageSlugs'
+import { SLUG_TO_LANG } from '../seo/languageSlugs'
+import { useI18n } from '../i18n/LanguageContext'
 
-const PAGE_COPY: Record<string, { title: string; description: string; h1: string; intro: string }> = {
+// SEO title/description stay Hebrew-authored (this route is prerendered
+// once per language slug, not per interface-language) - h1/intro/breadcrumb
+// below react to the interface language via the *Key fields instead.
+const SEO_COPY: Record<string, { title: string; description: string }> = {
   hebrew: {
     title: 'סיפורים בעברית לתרגול קריאה | נבון משחקים',
     description: '10 סיפורים מקוריים בעברית לתרגול קריאה והבנת הנקרא - לחצו על כל מילה כדי לשמוע הגייה וללמוד את משמעותה.',
-    h1: '📖 סיפורים בעברית',
-    intro: 'עשרה סיפורים קצרים ומקוריים בעברית, מתאימים לתרגול קריאה והבנת הנקרא. בכל סיפור אפשר ללחוץ על כל מילה כדי לשמוע אותה ולראות הסבר קצר על משמעותה.',
   },
   english: {
     title: 'סיפורים באנגלית ללימוד אוצר מילים | נבון משחקים',
     description: '10 סיפורים קצרים ומקוריים באנגלית ללימוד אוצר מילים - לחצו על כל מילה כדי לשמוע הגייה וללמוד את התרגום לעברית.',
-    h1: '📖 סיפורים באנגלית',
-    intro: 'עשרה סיפורים קצרים ומקוריים באנגלית ברמות שונות, מצוינים לתרגול קריאה ולהרחבת אוצר המילים. לחצו על כל מילה באנגלית כדי לשמוע הגייה וללמוד את התרגום לעברית.',
   },
   spanish: {
     title: 'סיפורים בספרדית ללימוד אוצר מילים | נבון משחקים',
     description: '10 סיפורים קצרים ומקוריים בספרדית ללימוד אוצר מילים - לחצו על כל מילה כדי לשמוע הגייה וללמוד את התרגום לעברית.',
-    h1: '📖 סיפורים בספרדית',
-    intro: 'עשרה סיפורים קצרים ומקוריים בספרדית ברמות שונות, מצוינים לתרגול קריאה ולהרחבת אוצר המילים. לחצו על כל מילה בספרדית כדי לשמוע הגייה וללמוד את התרגום לעברית.',
   },
 }
 
+const UI_COPY: Record<string, { nameKey: string; introKey: string }> = {
+  hebrew: { nameKey: 'game_stories_academy_he_name', introKey: 'stories_hebrew_intro' },
+  english: { nameKey: 'game_stories_academy_name', introKey: 'stories_english_intro' },
+  spanish: { nameKey: 'game_stories_academy_es_name', introKey: 'stories_spanish_intro' },
+}
+
 export default function StoriesListPage() {
+  const { tr } = useI18n()
   const { langSlug = '' } = useParams()
   const language = SLUG_TO_LANG[langSlug]
-  const copy = PAGE_COPY[langSlug]
+  const seo = SEO_COPY[langSlug]
+  const ui = UI_COPY[langSlug]
   const { progress } = useVocabProgress()
 
-  if (!language || !copy) return null
+  if (!language || !seo || !ui) return null
+
+  const h1 = `📖 ${tr(ui.nameKey)}`
 
   const stories = getStoriesByLanguage(language)
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: copy.h1,
-    description: copy.description,
+    name: h1,
+    description: seo.description,
     url: `${SITE_URL}/learn-languages/stories/${langSlug}`,
     inLanguage: language,
     hasPart: stories.map((s) => ({
@@ -54,19 +62,19 @@ export default function StoriesListPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 pb-24">
-      <SEOHead title={copy.title} description={copy.description} path={`/learn-languages/stories/${langSlug}`} jsonLd={jsonLd} />
+      <SEOHead title={seo.title} description={seo.description} path={`/learn-languages/stories/${langSlug}`} jsonLd={jsonLd} />
       <Breadcrumbs
         items={[
-          { label: 'דף הבית', href: '/' },
-          { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
-          { label: 'לומדים שפות', href: '/learn-languages' },
-          { label: 'סיפורים', href: '/learn-languages/stories' },
-          { label: LANG_LABEL_HE[language] },
+          { label: tr('nav_home'), href: '/' },
+          { label: tr('cat_learning_games'), href: '/games/learning' },
+          { label: tr('cat_languages'), href: '/learn-languages' },
+          { label: tr('cat_stories'), href: '/learn-languages/stories' },
+          { label: tr(ui.nameKey) },
         ]}
       />
 
-      <h1 className="mb-2 text-center font-fun text-2xl font-extrabold text-grape-600">{copy.h1}</h1>
-      <p className="mx-auto mb-6 max-w-xl text-center text-sm text-ink/60">{copy.intro}</p>
+      <h1 className="mb-2 text-center font-fun text-2xl font-extrabold text-grape-600">{h1}</h1>
+      <p className="mx-auto mb-6 max-w-xl text-center text-sm text-ink/60">{tr(ui.introKey)}</p>
 
       <StoriesListScreen
         stories={stories}

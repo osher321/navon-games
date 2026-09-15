@@ -26,8 +26,8 @@ export default function LanguageSelector({ value, onChange, languages = ['he', '
             }`}
           >
             <FlagIcon lang={lang} size={36} />
-            {/* Hebrew name ("אנגלית"/"ספרדית"), not the language's own native-script name - the interface is always Hebrew. */}
-            <span className="text-sm">{meta.label}</span>
+            {/* The language's own native-script name (e.g. "English", "Español") rather than meta.label (always the Hebrew name) - this reads correctly regardless of the site's current interface language. */}
+            <span className="text-sm">{meta.native}</span>
           </button>
         )
       })}

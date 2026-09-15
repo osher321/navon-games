@@ -19,6 +19,7 @@ import AchievementToast from './ui/AchievementToast'
 import Breadcrumbs from '../components/Breadcrumbs'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL } from '../seo/config'
+import { useI18n } from '../i18n/LanguageContext'
 
 type PlayOrigin = { type: 'level'; level: LevelNum; gameType: GameTypeId } | { type: 'review' }
 
@@ -31,6 +32,7 @@ type Phase =
   | { name: 'testResults'; level: LevelNum; outcome: VocabTestOutcome }
 
 export default function VocabAcademyPage() {
+  const { tr } = useI18n()
   const navigate = useNavigate()
   const {
     progress,
@@ -150,10 +152,10 @@ export default function VocabAcademyPage() {
       />
       <Breadcrumbs
         items={[
-          { label: 'דף הבית', href: '/' },
-          { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
-          { label: 'לומדים שפות', href: '/learn-languages' },
-          { label: 'אוצר מילים באנגלית' },
+          { label: tr('nav_home'), href: '/' },
+          { label: tr('cat_learning_games'), href: '/games/learning' },
+          { label: tr('cat_languages'), href: '/learn-languages' },
+          { label: tr('game_vocab_academy_name') },
         ]}
       />
 
@@ -161,14 +163,14 @@ export default function VocabAcademyPage() {
 
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="font-fun text-2xl font-extrabold text-ink">🎓 אוצר מילים באנגלית</h1>
+          <h1 className="font-fun text-2xl font-extrabold text-ink">🎓 {tr('game_vocab_academy_name')}</h1>
           <p className="text-xs font-bold text-ink/50">English Vocabulary Academy</p>
         </div>
         <button
           onClick={() => navigate('/learn-languages')}
           className="rounded-full bg-white px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card card-outline btn-pressable"
         >
-          ✕ יציאה
+          ✕ {tr('common_exit')}
         </button>
       </div>
 

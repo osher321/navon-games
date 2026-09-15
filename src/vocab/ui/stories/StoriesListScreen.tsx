@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { Story } from '../../data/stories/types'
 import { getStoryLevelDef } from '../../data/stories/types'
+import { useI18n } from '../../../i18n/LanguageContext'
 
 const MotionLink = motion(Link)
 
@@ -16,21 +17,22 @@ interface StoriesListScreenProps {
 }
 
 export default function StoriesListScreen({ stories, readIds, completedIds, getStoryHref, backHref }: StoriesListScreenProps) {
+  const { tr } = useI18n()
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-5 flex items-center justify-between gap-2">
         <Link
           to={backHref}
-          aria-label="חזרה ללומדים שפות"
+          aria-label={tr('cat_languages')}
           className="shrink-0 rounded-full bg-white px-4 py-2 font-fun text-sm font-extrabold text-ink shadow-card card-outline btn-pressable"
         >
-          ⬅ חזרה
+          ⬅ {tr('common_back')}
         </Link>
         {/* The page-level header above this component already shows the
             language-specific title ("סיפורים באנגלית"/"סיפורים בספרדית") -
             this row only needs the subtitle, so nothing here duplicates
             (and risks hardcoding) that title. */}
-        <p className="text-center text-xs font-bold text-ink/50">בחרו סיפור להתחלה</p>
+        <p className="text-center text-xs font-bold text-ink/50">{tr('stories_pick_one')}</p>
         <div className="w-16 shrink-0" aria-hidden="true" />
       </div>
 
@@ -59,9 +61,9 @@ export default function StoriesListScreen({ stories, readIds, completedIds, getS
                         {levelDef.icon} {levelDef.labelHe}
                       </span>
                       <span>·</span>
-                      <span>{story.lines.length} שורות</span>
-                      {isCompleted && <span className="rounded-full bg-grass-100 px-2 py-0.5 text-grass-700">✅ הושלם</span>}
-                      {!isCompleted && isRead && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-sky-700">👀 נקרא</span>}
+                      <span>{story.lines.length} {tr('stories_lines_unit')}</span>
+                      {isCompleted && <span className="rounded-full bg-grass-100 px-2 py-0.5 text-grass-700">✅ {tr('stories_completed_badge')}</span>}
+                      {!isCompleted && isRead && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-sky-700">👀 {tr('stories_read_badge')}</span>}
                     </div>
                   </div>
                 </div>
@@ -70,7 +72,7 @@ export default function StoriesListScreen({ stories, readIds, completedIds, getS
                   whileTap={{ scale: 0.97 }}
                   className="mt-3 block w-full rounded-full bg-grape-500 px-5 py-2.5 text-center font-fun text-sm font-extrabold text-white shadow-card btn-pressable"
                 >
-                  {isRead ? '📖 המשיכו לקרוא' : '▶ התחילו לקרוא'}
+                  {isRead ? `📖 ${tr('stories_continue_reading')}` : `▶ ${tr('stories_start_reading')}`}
                 </MotionLink>
               </div>
             </motion.div>

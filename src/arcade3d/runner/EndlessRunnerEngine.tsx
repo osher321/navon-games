@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type TouchEvent as ReactTouchEvent } from 
 import * as THREE from 'three'
 import type { FunGameProps } from '../../games/types'
 import { useSound } from '../../hooks/useSound'
+import { useI18n } from '../../i18n/LanguageContext'
 import { useArcadeCanvas } from '../useArcadeCanvas'
 import { setupBasicLighting, disposeObject3D } from '../sceneBasics'
 import { HudChip, PauseOverlay, TouchButton } from '../ArcadeUI'
@@ -125,6 +126,7 @@ type Phase = 'start' | 'playing' | 'paused'
  * not in a duplicated copy of this file.
  */
 export default function EndlessRunnerEngine({ config, onFinish }: { config: RunnerConfig } & FunGameProps) {
+  const { tr } = useI18n()
   const { play } = useSound()
   const mountRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<Phase>('start')
@@ -489,9 +491,9 @@ export default function EndlessRunnerEngine({ config, onFinish }: { config: Runn
               ? 'רוצו, קפצו, החליקו והתקיפו אויבים - הימנעו ממכשולים ואספו מטבעות ובונוסים'
               : 'רוצו, קפצו והחליקו הכי רחוק שאפשר - הימנעו ממכשולים ואספו מטבעות ובונוסים'}
           </p>
-          <p className="text-xs text-ink/50">שיא אישי: {best}</p>
+          <p className="text-xs text-ink/50">{tr('best_score')}: {best}</p>
           <button onClick={start} className="rounded-full bg-grass-500 px-8 py-3 font-fun text-lg font-extrabold text-white shadow-card btn-pressable">
-            ▶ התחילו
+            ▶ {tr('common_start')}
           </button>
         </div>
       )}

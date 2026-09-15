@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useI18n } from '../i18n/LanguageContext'
 import { useProgress } from '../hooks/useProgress'
 import LanguageSelector from '../components/LanguageSelector'
+import UiLanguageSelector from '../components/UiLanguageSelector'
 
 export default function Settings() {
   const { tr } = useI18n()
@@ -14,8 +15,13 @@ export default function Settings() {
 
       <section className="mb-8 rounded-xl2 bg-white p-5 shadow-card card-outline">
         <p className="mb-3 font-fun font-extrabold text-ink">{tr('nav_languages')}</p>
-        {/* Which language to LEARN - independent of the (always-Hebrew) interface language, so this binds directly to selectedLanguage, same as Home and the Languages hub. */}
+        {/* Which language to LEARN - independent of the site's interface language below, so this binds directly to selectedLanguage, same as Home and the Languages hub. */}
         <LanguageSelector value={progress.selectedLanguage} onChange={setSelectedLanguage} />
+      </section>
+
+      <section className="mb-8 rounded-xl2 bg-white p-5 shadow-card card-outline">
+        <p className="mb-3 font-fun font-extrabold text-ink">{tr('ui_lang_picker_title')}</p>
+        <UiLanguageSelector />
       </section>
 
       <section className="mb-8 flex items-center justify-between rounded-xl2 bg-white p-5 shadow-card card-outline">

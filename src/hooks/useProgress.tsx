@@ -98,6 +98,7 @@ interface ProgressContextValue {
   addXP: (amount: number) => void
   recordGameResult: (opts: RecordGameOptions) => { xpEarned: number; newAchievements: string[]; leveledUp: boolean }
   setSelectedLanguage: (lang: LangCode) => void
+  setInterfaceLanguage: (lang: LangCode) => void
   toggleSound: () => void
   updateProfile: (profile: Partial<ChildProfile>) => void
   resetProgress: () => void
@@ -125,10 +126,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Deliberately does NOT touch interfaceLanguage - the site's UI language
   // and the language the learner is studying are two independent concepts
   // (a Hebrew-speaking learner studying English still wants Hebrew menus,
-  // buttons, and instructions). See i18n/LanguageContext.tsx, which pins
-  // the interface to Hebrew regardless of this value.
+  // buttons, and instructions unless they separately switch the interface
+  // language too). See i18n/LanguageContext.tsx, which reads
+  // interfaceLanguage (set via setInterfaceLanguage below) for that.
   const setSelectedLanguage = useCallback((lang: LangCode) => {
     setProgress((prev) => ({ ...prev, selectedLanguage: lang }))
+  }, [])
+
+  const setInterfaceLanguage = useCallback((lang: LangCode) => {
+    setProgress((prev) => ({ ...prev, interfaceLanguage: lang }))
   }, [])
 
   const toggleSound = useCallback(() => {
@@ -249,6 +255,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     addXP,
     recordGameResult,
     setSelectedLanguage,
+    setInterfaceLanguage,
     toggleSound,
     updateProfile,
     resetProgress,

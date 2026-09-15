@@ -473,7 +473,7 @@ export default function MazeEscapeGame({ onFinish }: FunGameProps) {
           onClick={startGame}
           className="rounded-full bg-grape-500 px-8 py-3 font-fun text-lg font-extrabold text-white shadow-card btn-pressable"
         >
-          ▶ התחילו
+          ▶ {tr('common_start')}
         </button>
       </div>
     )

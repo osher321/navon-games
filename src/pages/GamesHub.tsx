@@ -35,10 +35,10 @@ export default function GamesHub() {
         path="/games"
         jsonLd={jsonLd}
       />
-      <Breadcrumbs items={[{ label: 'דף הבית', href: '/' }, { label: 'משחקים בשביל הכיף' }]} />
+      <Breadcrumbs items={[{ label: tr('nav_home'), href: '/' }, { label: tr('cat_fun_games') }]} />
 
-      <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">🎮 משחקים בשביל הכיף</h1>
-      <p className="mb-8 text-center text-ink/50">כאן משחקים, נהנים ומאתגרים את עצמנו</p>
+      <h1 className="mb-2 text-center font-fun text-3xl font-extrabold text-grape-600">🎮 {tr('cat_fun_games')}</h1>
+      <p className="mb-8 text-center text-ink/50">{tr('cat_fun_tagline')}</p>
 
       <MotionLink
         to="/games/gtn"
@@ -68,11 +68,10 @@ export default function GamesHub() {
       <GameGrid games={games} />
 
       <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-ink/50">
-        מחפשים משחקים לימודיים? בקרו ב-
+        {tr('looking_for_learning_games')}{' '}
         <Link to="/games/learning" className="underline decoration-dotted hover:text-ink">
-          📚 משחקים בשביל ללמוד
+          📚 {tr('cat_learning_games')}
         </Link>
-        .
       </p>
     </div>
   )

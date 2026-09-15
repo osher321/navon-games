@@ -7,8 +7,12 @@ import Breadcrumbs from '../components/Breadcrumbs'
 import SEOHead from '../seo/SEOHead'
 import { SITE_URL } from '../seo/config'
 import { SLUG_TO_LANG, LANG_LABEL_HE } from '../seo/languageSlugs'
+import { useI18n } from '../i18n/LanguageContext'
+
+const STORY_LANG_NAME_KEY: Record<string, string> = { he: 'game_stories_academy_he_name', en: 'game_stories_academy_name', es: 'game_stories_academy_es_name' }
 
 export default function StoryReaderPage() {
+  const { tr } = useI18n()
   const { langSlug = '', storyId = '' } = useParams()
   const language = SLUG_TO_LANG[langSlug]
   const story = getStoryById(storyId)
@@ -57,11 +61,11 @@ export default function StoryReaderPage() {
       />
       <Breadcrumbs
         items={[
-          { label: 'דף הבית', href: '/' },
-          { label: 'משחקים בשביל ללמוד', href: '/games/learning' },
-          { label: 'לומדים שפות', href: '/learn-languages' },
-          { label: 'סיפורים', href: '/learn-languages/stories' },
-          { label: langLabel, href: `/learn-languages/stories/${langSlug}` },
+          { label: tr('nav_home'), href: '/' },
+          { label: tr('cat_learning_games'), href: '/games/learning' },
+          { label: tr('cat_languages'), href: '/learn-languages' },
+          { label: tr('cat_stories'), href: '/learn-languages/stories' },
+          { label: tr(STORY_LANG_NAME_KEY[language]), href: `/learn-languages/stories/${langSlug}` },
           { label: story.title },
         ]}
       />

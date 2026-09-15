@@ -21,7 +21,7 @@ export default function GTNPage() {
         description="שחקו ב-GTN - משחק עולם פתוח בתלת-ממד בדפדפן: נהיגה, טיסה, שיט והליכה בעיר פתוחה, בחינם וללא הורדה."
         path="/games/gtn"
       />
-      {phase === 'menu' && <Breadcrumbs items={[{ label: 'דף הבית', href: '/' }, { label: 'משחקים', href: '/games' }, { label: 'GTN' }]} />}
+      {phase === 'menu' && <Breadcrumbs items={[{ label: tr('nav_home'), href: '/' }, { label: tr('cat_fun_games'), href: '/games' }, { label: 'GTN' }]} />}
       {phase === 'menu' && (
         <MainMenu
           onPlay={() => setPhase('playing')}
